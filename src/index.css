@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 20 10% 4%;
+    --foreground: 40 30% 92%;
+
+    --card: 20 8% 8%;
+    --card-foreground: 40 30% 92%;
+
+    --popover: 20 8% 8%;
+    --popover-foreground: 40 30% 92%;
+
+    --primary: 38 60% 50%;
+    --primary-foreground: 20 10% 4%;
+
+    --secondary: 20 6% 14%;
+    --secondary-foreground: 40 20% 80%;
+
+    --muted: 20 6% 18%;
+    --muted-foreground: 30 10% 55%;
+
+    --accent: 38 45% 40%;
+    --accent-foreground: 40 30% 92%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 40 30% 92%;
+
+    --border: 30 8% 18%;
+    --input: 30 8% 18%;
+    --ring: 38 60% 50%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 20 10% 4%;
+    --sidebar-foreground: 40 30% 92%;
+    --sidebar-primary: 38 60% 50%;
+    --sidebar-primary-foreground: 20 10% 4%;
+    --sidebar-accent: 20 6% 14%;
+    --sidebar-accent-foreground: 40 30% 92%;
+    --sidebar-border: 30 8% 18%;
+    --sidebar-ring: 38 60% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .text-gradient-gold {
+    background: linear-gradient(135deg, hsl(38 60% 65%), hsl(38 60% 50%), hsl(35 55% 35%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glow-gold {
+    box-shadow: 0 0 20px hsl(38 60% 50% / 0.3);
+  }
+
+  .glass-dark {
+    @apply backdrop-blur-xl border;
+    background: hsl(20 8% 8% / 0.8);
+    border-color: hsl(30 8% 18%);
+  }
+}
