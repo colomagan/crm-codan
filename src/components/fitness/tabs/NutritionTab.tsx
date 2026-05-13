@@ -1,13 +1,21 @@
 import { useState } from 'react';
 import { Plus, Trash2, Copy, Zap } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { useNutrition } from '@/hooks/fitness/useNutrition';
 import type { NutritionItem } from '@/types/fitness';
 import { toast } from 'sonner';
+
+const T = {
+  bg: '#0a0b0d', surface: '#111215', surface2: '#16181c', surface3: '#1c1f24',
+  border: '#23262d', borderStrong: '#2e323a',
+  text: '#f3f4f6', text2: '#b6b9c2', text3: '#7a7e88', text4: '#50545d',
+  accent: '#c8ff3d', accentInk: '#0a0b0d', accentDim: 'rgba(200,255,61,0.12)', accentLine: 'rgba(200,255,61,0.35)',
+  danger: '#ff5d5d', warning: '#ffb547', info: '#6ea8ff', good: '#51e2a8',
+};
+
+const DAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+const MACRO_COLORS = { prot: '#a78bff', carbs: '#ffb547', fat: '#51e2a8' };
 
 interface Props { clientId: string; }
 
@@ -18,8 +26,9 @@ export function NutritionTab({ clientId }: Props) {
   const [planForm, setPlanForm] = useState({ name: '', kcal: '', protein: '', carbs: '', fat: '' });
   const [mealDialog, setMealDialog] = useState(false);
   const [mealForm, setMealForm] = useState({ name: '', time: '' });
-  const [itemDialog, setItemDialog] = useState<string | null>(null); // mealId
+  const [itemDialog, setItemDialog] = useState<string | null>(null);
   const [itemForm, setItemForm] = useState<Partial<NutritionItem>>({ ingredient: '', qty: 100, unit: 'g', kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 });
+  const [activeDay, setActiveDay] = useState(5); // Sáb default
 
   const totalKcal = meals.flatMap(m => m.items ?? []).reduce((s, i) => s + i.kcal, 0);
   const totalP = meals.flatMap(m => m.items ?? []).reduce((s, i) => s + i.protein_g, 0);
@@ -27,9 +36,9 @@ export function NutritionTab({ clientId }: Props) {
   const totalF = meals.flatMap(m => m.items ?? []).reduce((s, i) => s + i.fat_g, 0);
 
   const pieData = [
-    { name: 'Proteína', value: Math.round(totalP * 4), color: '#6366f1' },
-    { name: 'Carbos', value: Math.round(totalC * 4), color: '#f59e0b' },
-    { name: 'Grasas', value: Math.round(totalF * 9), color: '#10b981' },
+    { name: 'Proteína', value: Math.round(totalP * 4), color: MACRO_COLORS.prot },
+    { name: 'Carbos', value: Math.round(totalC * 4), color: MACRO_COLORS.carbs },
+    { name: 'Grasas', value: Math.round(totalF * 9), color: MACRO_COLORS.fat },
   ].filter(d => d.value > 0);
 
   const generateShoppingList = () => {
@@ -48,137 +57,250 @@ export function NutritionTab({ clientId }: Props) {
     toast.success('Lista copiada al portapapeles.');
   };
 
-  if (loading) return <div className="p-5 text-sm text-slate-500">Cargando...</div>;
+  if (loading) return (
+    <div style={{ padding: '24px 28px', background: T.bg, color: T.text3, fontSize: 13 }}>Cargando...</div>
+  );
 
   if (!plan) {
     return (
-      <div className="p-5 flex flex-col items-center justify-center h-full text-center py-20">
-        <p className="text-slate-400 text-sm mb-4">Sin plan nutricional activo.</p>
-        <Button onClick={() => setPlanDialog(true)} className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold">
-          Crear plan nutricional
-        </Button>
+      <div style={{ padding: '24px 28px', background: T.bg, minHeight: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 14, padding: 40, textAlign: 'center', maxWidth: 360 }}>
+          <p style={{ fontSize: 14, color: T.text3, marginBottom: 16 }}>Sin plan nutricional activo.</p>
+          <button onClick={() => setPlanDialog(true)}
+            style={{ background: T.accent, color: T.accentInk, border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            Crear plan nutricional
+          </button>
+        </div>
         <PlanDialog open={planDialog} onClose={() => setPlanDialog(false)} form={planForm} setForm={setPlanForm}
           onSave={async () => { await createPlan(planForm.name || 'Plan', parseInt(planForm.kcal) || 2000, parseInt(planForm.protein) || 150, parseInt(planForm.carbs) || 200, parseInt(planForm.fat) || 67); setPlanDialog(false); }} />
       </div>
     );
   }
 
+  const completePct = plan.kcal_target ? Math.round(totalKcal / plan.kcal_target * 100) : 0;
+
+  const shoppingMap = new Map<string, { qty: number; unit: string; kcal: number; protein: number }>();
+  meals.flatMap(m => m.items ?? []).forEach(i => {
+    const key = `${i.ingredient}__${i.unit}`;
+    const ex = shoppingMap.get(key) ?? { qty: 0, unit: i.unit, kcal: 0, protein: 0 };
+    shoppingMap.set(key, { qty: ex.qty + i.qty * 7, unit: i.unit, kcal: ex.kcal + i.kcal * 7, protein: ex.protein + i.protein_g * 7 });
+  });
+  const shoppingItems = [...shoppingMap.entries()].map(([key, v]) => ({ name: key.split('__')[0], ...v }));
+
   return (
-    <div className="p-5 grid grid-cols-2 gap-6">
-      {/* LEFT: Plan */}
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold text-slate-200">{plan.name}</p>
-          <Button size="sm" onClick={() => setMealDialog(true)}
-            className="h-7 text-xs gap-1 bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold">
-            <Plus className="w-3 h-3" /> Comida
-          </Button>
+    <div style={{ padding: '24px 28px', background: T.bg, minHeight: '100%' }}>
+      {/* Page header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div>
+          <h2 style={{ fontFamily: 'Instrument Serif, Georgia, serif', fontSize: 28, fontWeight: 400, color: T.text, margin: 0, lineHeight: 1.2 }}>
+            Plan nutricional
+          </h2>
+          <p style={{ fontSize: 13, color: T.text3, margin: '2px 0 0' }}>
+            {plan?.name ?? 'Sin plan'} · {plan?.kcal_target ?? '—'} kcal
+          </p>
         </div>
-
-        {/* Macro donut */}
-        <div className="rounded-xl bg-slate-800 p-4 flex items-center gap-4">
-          <div style={{ width: 70, height: 70 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={pieData.length > 0 ? pieData : [{ name: 'Sin datos', value: 1, color: '#334155' }]}
-                  cx="50%" cy="50%" innerRadius={20} outerRadius={32} dataKey="value" strokeWidth={0}>
-                  {(pieData.length > 0 ? pieData : [{ color: '#334155' }]).map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid #334155', fontSize: 11, borderRadius: 6 }} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div>
-            <p className="text-base font-bold text-white">{totalKcal} <span className="text-xs text-slate-400">/ {plan.kcal_target} kcal</span></p>
-            <div className="flex gap-2 mt-1 flex-wrap">
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300">P {totalP.toFixed(0)}g</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">C {totalC.toFixed(0)}g</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">G {totalF.toFixed(0)}g</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Meals */}
-        <div className="flex flex-col gap-2">
-          {meals.length === 0 && <p className="text-xs text-slate-500">Sin comidas en el plan.</p>}
-          {meals.map(meal => {
-            const mKcal = (meal.items ?? []).reduce((s, i) => s + i.kcal, 0);
-            return (
-              <div key={meal.id} className="rounded-xl bg-slate-800 overflow-hidden">
-                <div className="flex items-center justify-between px-3 py-2 border-b border-slate-700">
-                  <div>
-                    <span className="text-xs font-semibold text-slate-200">{meal.name}</span>
-                    {meal.time && <span className="ml-2 text-[10px] text-slate-500">{meal.time}</span>}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-slate-400">{mKcal} kcal</span>
-                    <button onClick={() => setItemDialog(meal.id)} className="text-slate-500 hover:text-amber-400 transition-colors">
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={() => deleteMeal(meal.id)} className="text-slate-600 hover:text-red-400 transition-colors">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-                <div className="px-3 py-2 flex flex-col gap-1">
-                  {(meal.items ?? []).length === 0 && <p className="text-[10px] text-slate-600">Sin ingredientes.</p>}
-                  {(meal.items ?? []).map(item => (
-                    <div key={item.id} className="flex items-center justify-between gap-2 group">
-                      <input defaultValue={item.ingredient}
-                        onBlur={e => updateItem(item.id, { ingredient: e.target.value })}
-                        className="bg-transparent text-xs text-slate-300 flex-1 focus:outline-none focus:text-white" />
-                      <input type="number" defaultValue={item.qty}
-                        onBlur={e => updateItem(item.id, { qty: parseFloat(e.target.value) })}
-                        className="bg-transparent text-xs text-slate-400 w-10 text-right focus:outline-none" />
-                      <span className="text-[10px] text-slate-500">{item.unit}</span>
-                      <span className="text-[10px] text-slate-500">{item.kcal}kcal</span>
-                      <button onClick={() => deleteItem(item.id)} className="text-transparent group-hover:text-red-400 transition-colors">
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <GhostBtn>Plantilla</GhostBtn>
+          <GhostBtn onClick={generateShoppingList}>Lista de la compra</GhostBtn>
+          <GhostBtn onClick={() => setPlanDialog(true)}>Editar plan</GhostBtn>
         </div>
       </div>
 
-      {/* RIGHT: Shopping list */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold text-slate-200">🛒 Lista de compra</p>
-          <div className="flex gap-1.5">
-            <Button size="sm" onClick={generateShoppingList}
-              className="h-7 text-xs gap-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30">
-              <Zap className="w-3 h-3" /> Auto-generar
-            </Button>
-            <Button size="sm" onClick={generateShoppingList}
-              className="h-7 text-xs gap-1 bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold">
-              <Copy className="w-3 h-3" /> Copiar
-            </Button>
+      {/* Main 2-column grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
+
+        {/* LEFT card — Plan del día */}
+        <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 14, padding: 20 }}>
+          {/* Card header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 600, color: T.text, margin: 0 }}>Plan del día</p>
+              <p style={{ fontSize: 12, color: T.text3, margin: '2px 0 0' }}>{plan.name}</p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              {/* Day subtabs */}
+              <div style={{ display: 'inline-flex', background: T.surface2, border: `1px solid ${T.border}`, borderRadius: 9, padding: 3, gap: 2 }}>
+                {DAYS.map((d, i) => (
+                  <button key={d} onClick={() => setActiveDay(i)}
+                    style={{
+                      padding: '4px 7px', fontSize: 11, fontFamily: 'JetBrains Mono, monospace', border: 'none', borderRadius: 6, cursor: 'pointer',
+                      background: activeDay === i ? T.accent : 'transparent',
+                      color: activeDay === i ? T.accentInk : T.text3,
+                      fontWeight: activeDay === i ? 700 : 400,
+                    }}>{d}</button>
+                ))}
+              </div>
+              <button onClick={() => setMealDialog(true)}
+                style={{ background: T.accent, color: T.accentInk, border: 'none', borderRadius: 7, padding: '5px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Plus size={12} /> Comida
+              </button>
+            </div>
           </div>
+
+          {/* Meals list */}
+          {meals.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '32px 0' }}>
+              <p style={{ fontSize: 13, color: T.text3, marginBottom: 12 }}>Sin comidas en el plan.</p>
+              <button onClick={() => setMealDialog(true)}
+                style={{ background: T.accent, color: T.accentInk, border: 'none', borderRadius: 7, padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <Plus size={12} /> Comida
+              </button>
+            </div>
+          ) : (
+            meals.map(meal => {
+              const mKcal = (meal.items ?? []).reduce((s, i) => s + i.kcal, 0);
+              const mP = (meal.items ?? []).reduce((s, i) => s + i.protein_g, 0).toFixed(0);
+              const mC = (meal.items ?? []).reduce((s, i) => s + i.carbs_g, 0).toFixed(0);
+              const mF = (meal.items ?? []).reduce((s, i) => s + i.fat_g, 0).toFixed(0);
+              return (
+                <div key={meal.id} style={{ background: T.surface2, border: `1px solid ${T.border}`, borderRadius: 10, marginBottom: 10 }}>
+                  {/* Meal header */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: `1px solid ${T.border}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {meal.time && <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: T.text3 }}>{meal.time}</span>}
+                      <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>{meal.name}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: T.text2 }}>
+                        {mKcal} kcal · P {mP} · C {mC} · G {mF}
+                      </span>
+                      <button onClick={() => deleteMeal(meal.id)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.text4, padding: 2, display: 'flex' }}
+                        onMouseEnter={e => (e.currentTarget.style.color = T.danger)}
+                        onMouseLeave={e => (e.currentTarget.style.color = T.text4)}>
+                        <Trash2 size={13} />
+                      </button>
+                      <button onClick={() => setItemDialog(meal.id)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.text3, padding: 2, display: 'flex' }}
+                        onMouseEnter={e => (e.currentTarget.style.color = T.accent)}
+                        onMouseLeave={e => (e.currentTarget.style.color = T.text3)}>
+                        <Plus size={13} />
+                      </button>
+                    </div>
+                  </div>
+                  {/* Items */}
+                  <div style={{ padding: '0 16px 8px' }}>
+                    {(meal.items ?? []).length === 0 && (
+                      <p style={{ fontSize: 11, color: T.text4, padding: '8px 0' }}>Sin ingredientes.</p>
+                    )}
+                    {(meal.items ?? []).map(item => (
+                      <div key={item.id}
+                        style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 12, padding: '6px 0', borderTop: `1px dashed ${T.border}`, fontSize: 12, color: T.text2, fontFamily: 'JetBrains Mono, monospace', alignItems: 'center' }}>
+                        <input defaultValue={item.ingredient}
+                          onBlur={e => updateItem(item.id, { ingredient: e.target.value })}
+                          style={{ background: 'transparent', border: 'none', outline: 'none', color: T.text2, fontSize: 12, fontFamily: 'inherit', width: '100%' }}
+                          onFocus={e => (e.currentTarget.style.color = T.text)}
+                          onBlurCapture={e => (e.currentTarget.style.color = T.text2)} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <input type="number" defaultValue={item.qty}
+                            onBlur={e => updateItem(item.id, { qty: parseFloat(e.target.value) })}
+                            style={{ background: 'transparent', border: 'none', outline: 'none', color: T.text3, fontSize: 12, fontFamily: 'inherit', width: 40, textAlign: 'right' }} />
+                          <span style={{ color: T.text3 }}>{item.unit}</span>
+                          <span style={{ color: T.text3 }}>{item.kcal}kcal</span>
+                        </div>
+                        <button onClick={() => deleteItem(item.id)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.text4, padding: 2, display: 'flex' }}
+                          onMouseEnter={e => (e.currentTarget.style.color = T.danger)}
+                          onMouseLeave={e => (e.currentTarget.style.color = T.text4)}>
+                          <Trash2 size={11} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
 
-        <div className="rounded-xl bg-slate-800 p-4 flex flex-col gap-3">
-          {(() => {
-            const map = new Map<string, { qty: number; unit: string; kcal: number; protein: number }>();
-            meals.flatMap(m => m.items ?? []).forEach(i => {
-              const key = `${i.ingredient}__${i.unit}`;
-              const ex = map.get(key) ?? { qty: 0, unit: i.unit, kcal: 0, protein: 0 };
-              map.set(key, { qty: ex.qty + i.qty * 7, unit: i.unit, kcal: ex.kcal + i.kcal * 7, protein: ex.protein + i.protein_g * 7 });
-            });
-            if (map.size === 0) return <p className="text-xs text-slate-500 text-center py-4">Agrega ingredientes al plan para ver la lista.</p>;
-            const items = [...map.entries()].map(([key, v]) => ({ name: key.split('__')[0], ...v }));
-            return items.map(item => (
-              <div key={item.name} className="flex items-center justify-between text-xs">
-                <span className="text-slate-200">{item.name}</span>
-                <span className="text-slate-400">{item.qty.toFixed(0)} {item.unit}<span className="text-slate-600">/sem</span></span>
+        {/* RIGHT column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+          {/* Macro card */}
+          <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 14, padding: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 600, color: T.text, margin: 0 }}>Macros del día</p>
+                <p style={{ fontSize: 12, color: T.text3, margin: '2px 0 0' }}>Objetivo {plan.kcal_target} kcal</p>
               </div>
-            ));
-          })()}
+              {plan.kcal_target && (
+                <span style={{ background: 'rgba(81,226,168,0.12)', color: T.good, border: `1px solid rgba(81,226,168,0.3)`, borderRadius: 20, padding: '3px 10px', fontSize: 11, fontFamily: 'JetBrains Mono, monospace' }}>
+                  {completePct}% completado
+                </span>
+              )}
+            </div>
+
+            {/* Donut */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+              <div style={{ position: 'relative', width: 180, height: 180 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={pieData.length > 0 ? pieData : [{ name: 'Sin datos', value: 1, color: T.surface3 }]}
+                      cx="50%" cy="50%" innerRadius={35} outerRadius={55} dataKey="value" strokeWidth={0}>
+                      {(pieData.length > 0 ? pieData : [{ color: T.surface3 }]).map((entry, i) => (
+                        <Cell key={i} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ background: T.surface2, border: `1px solid ${T.border}`, fontSize: 11, borderRadius: 6, color: T.text }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', textAlign: 'center', pointerEvents: 'none' }}>
+                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 24, fontWeight: 700, color: T.text, lineHeight: 1 }}>{totalKcal}</div>
+                  <div style={{ fontSize: 11, color: T.text3, textTransform: 'uppercase', letterSpacing: 1 }}>KCAL</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Macro rows */}
+            {[
+              { label: 'Proteína', total: totalP, target: plan.protein_target ?? 150, color: MACRO_COLORS.prot },
+              { label: 'Carbos', total: totalC, target: plan.carbs_target ?? 200, color: MACRO_COLORS.carbs },
+              { label: 'Grasas', total: totalF, target: plan.fat_target ?? 67, color: MACRO_COLORS.fat },
+            ].map((macro, idx) => (
+              <div key={macro.label} style={{
+                display: 'grid', gridTemplateColumns: '90px 1fr 110px', gap: 12, alignItems: 'center',
+                padding: '10px 0', borderTop: idx === 0 ? 'none' : `1px solid ${T.border}`,
+              }}>
+                <span style={{ fontSize: 12, color: T.text }}>{macro.label}</span>
+                <div style={{ height: 6, background: T.surface3, borderRadius: 3, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${Math.min((macro.total / macro.target) * 100, 100)}%`, background: macro.color, borderRadius: 3 }} />
+                </div>
+                <span style={{ fontSize: 12, fontFamily: 'JetBrains Mono, monospace', color: T.text2, textAlign: 'right' }}>
+                  {macro.total.toFixed(0)}g / {macro.target}g
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Shopping list card */}
+          <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 14, padding: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <p style={{ fontSize: 14, fontWeight: 600, color: T.text, margin: 0 }}>🛒 Lista de compra</p>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button onClick={generateShoppingList}
+                  style={{ background: T.accentDim, color: T.accent, border: `1px solid ${T.accentLine}`, borderRadius: 7, padding: '4px 10px', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Zap size={11} /> Auto-generar
+                </button>
+                <button onClick={generateShoppingList}
+                  style={{ background: T.accent, color: T.accentInk, border: 'none', borderRadius: 7, padding: '4px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Copy size={11} /> Copiar
+                </button>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {shoppingItems.length === 0 ? (
+                <p style={{ fontSize: 12, color: T.text3, textAlign: 'center', padding: '16px 0' }}>
+                  Agrega ingredientes al plan para ver la lista.
+                </p>
+              ) : shoppingItems.map(item => (
+                <div key={item.name} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                  <span style={{ color: T.text2 }}>{item.name}</span>
+                  <span style={{ color: T.text3 }}>{item.qty.toFixed(0)} {item.unit}<span style={{ color: T.text4 }}>/sem</span></span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -188,37 +310,32 @@ export function NutritionTab({ clientId }: Props) {
 
       {/* Meal dialog */}
       <Dialog open={mealDialog} onOpenChange={setMealDialog}>
-        <DialogContent className="max-w-xs bg-slate-900 border-slate-700 text-white">
-          <DialogHeader><DialogTitle className="text-white">Agregar comida</DialogTitle></DialogHeader>
-          <div className="space-y-3 py-2">
-            <div className="space-y-1">
-              <Label className="text-xs text-slate-400">Nombre *</Label>
-              <Input placeholder="Desayuno" value={mealForm.name} onChange={e => setMealForm(p => ({ ...p, name: e.target.value }))}
-                className="bg-slate-800 border-slate-600 text-white h-8 text-sm" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-slate-400">Hora</Label>
-              <Input placeholder="07:00" value={mealForm.time} onChange={e => setMealForm(p => ({ ...p, time: e.target.value }))}
-                className="bg-slate-800 border-slate-600 text-white h-8 text-sm" />
-            </div>
+        <DialogContent style={{ background: T.surface, border: `1px solid ${T.borderStrong}`, color: T.text, maxWidth: 320 }}>
+          <DialogHeader><DialogTitle style={{ color: T.text }}>Agregar comida</DialogTitle></DialogHeader>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '8px 0' }}>
+            <DialogField label="Nombre *">
+              <DialogInput placeholder="Desayuno" value={mealForm.name} onChange={e => setMealForm(p => ({ ...p, name: e.target.value }))} />
+            </DialogField>
+            <DialogField label="Hora">
+              <DialogInput placeholder="07:00" value={mealForm.time} onChange={e => setMealForm(p => ({ ...p, time: e.target.value }))} />
+            </DialogField>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setMealDialog(false)} className="border-slate-600 text-slate-300">Cancelar</Button>
-            <Button onClick={async () => { await addMeal(mealForm.name, mealForm.time); setMealDialog(false); setMealForm({ name: '', time: '' }); }}
-              disabled={!mealForm.name} className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold">Agregar</Button>
+            <GhostBtn onClick={() => setMealDialog(false)}>Cancelar</GhostBtn>
+            <AccentBtn onClick={async () => { await addMeal(mealForm.name, mealForm.time); setMealDialog(false); setMealForm({ name: '', time: '' }); }} disabled={!mealForm.name}>Agregar</AccentBtn>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Item dialog */}
       <Dialog open={!!itemDialog} onOpenChange={o => { if (!o) setItemDialog(null); }}>
-        <DialogContent className="max-w-sm bg-slate-900 border-slate-700 text-white">
-          <DialogHeader><DialogTitle className="text-white">Agregar ingrediente</DialogTitle></DialogHeader>
-          <div className="grid grid-cols-2 gap-3 py-2">
-            <div className="col-span-2 space-y-1">
-              <Label className="text-xs text-slate-400">Ingrediente *</Label>
-              <Input placeholder="Pollo pechuga" value={itemForm.ingredient} onChange={e => setItemForm(p => ({ ...p, ingredient: e.target.value }))}
-                className="bg-slate-800 border-slate-600 text-white h-8 text-sm" />
+        <DialogContent style={{ background: T.surface, border: `1px solid ${T.borderStrong}`, color: T.text, maxWidth: 360 }}>
+          <DialogHeader><DialogTitle style={{ color: T.text }}>Agregar ingrediente</DialogTitle></DialogHeader>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: '8px 0' }}>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <DialogField label="Ingrediente *">
+                <DialogInput placeholder="Pollo pechuga" value={itemForm.ingredient} onChange={e => setItemForm(p => ({ ...p, ingredient: e.target.value }))} />
+              </DialogField>
             </div>
             {[
               { key: 'qty', label: 'Cantidad' },
@@ -228,17 +345,15 @@ export function NutritionTab({ clientId }: Props) {
               { key: 'carbs_g', label: 'Carbos (g)' },
               { key: 'fat_g', label: 'Grasa (g)' },
             ].map(f => (
-              <div key={f.key} className="space-y-1">
-                <Label className="text-xs text-slate-400">{f.label}</Label>
-                <Input type={f.type ?? 'number'} step="0.1" value={String(itemForm[f.key as keyof typeof itemForm] ?? '')}
-                  onChange={e => setItemForm(p => ({ ...p, [f.key]: f.type === 'text' ? e.target.value : parseFloat(e.target.value) || 0 }))}
-                  className="bg-slate-800 border-slate-600 text-white h-8 text-sm" />
-              </div>
+              <DialogField key={f.key} label={f.label}>
+                <DialogInput type={f.type ?? 'number'} step="0.1" value={String(itemForm[f.key as keyof typeof itemForm] ?? '')}
+                  onChange={e => setItemForm(p => ({ ...p, [f.key]: f.type === 'text' ? e.target.value : parseFloat(e.target.value) || 0 }))} />
+              </DialogField>
             ))}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setItemDialog(null)} className="border-slate-600 text-slate-300">Cancelar</Button>
-            <Button onClick={async () => {
+            <GhostBtn onClick={() => setItemDialog(null)}>Cancelar</GhostBtn>
+            <AccentBtn onClick={async () => {
               if (!itemDialog || !itemForm.ingredient) return;
               await addItem(itemDialog, {
                 ingredient: itemForm.ingredient!, qty: itemForm.qty ?? 100, unit: itemForm.unit ?? 'g',
@@ -246,11 +361,49 @@ export function NutritionTab({ clientId }: Props) {
               });
               setItemDialog(null);
               setItemForm({ ingredient: '', qty: 100, unit: 'g', kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 });
-            }} disabled={!itemForm.ingredient} className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold">Agregar</Button>
+            }} disabled={!itemForm.ingredient}>Agregar</AccentBtn>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+/* ── Internal helpers ── */
+
+function GhostBtn({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
+  return (
+    <button onClick={onClick}
+      style={{ background: 'transparent', color: T.text2, border: `1px solid ${T.border}`, borderRadius: 8, padding: '5px 12px', fontSize: 12, cursor: 'pointer' }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = T.borderStrong; e.currentTarget.style.color = T.text; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.color = T.text2; }}>
+      {children}
+    </button>
+  );
+}
+
+function AccentBtn({ children, onClick, disabled }: { children: React.ReactNode; onClick?: () => void; disabled?: boolean }) {
+  return (
+    <button onClick={onClick} disabled={disabled}
+      style={{ background: T.accent, color: T.accentInk, border: 'none', borderRadius: 8, padding: '6px 16px', fontSize: 13, fontWeight: 600, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.5 : 1 }}>
+      {children}
+    </button>
+  );
+}
+
+function DialogField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <label style={{ fontSize: 11, textTransform: 'uppercase', color: T.text3, letterSpacing: '0.05em' }}>{label}</label>
+      {children}
+    </div>
+  );
+}
+
+function DialogInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input {...props}
+      style={{ background: T.surface2, border: `1px solid ${T.border}`, color: T.text, height: 32, borderRadius: 8, fontSize: 13, padding: '0 10px', outline: 'none', width: '100%', boxSizing: 'border-box', ...props.style }} />
   );
 }
 
@@ -262,13 +415,13 @@ function PlanDialog({ open, onClose, form, setForm, onSave }: {
 }) {
   return (
     <Dialog open={open} onOpenChange={o => { if (!o) onClose(); }}>
-      <DialogContent className="max-w-sm bg-slate-900 border-slate-700 text-white">
-        <DialogHeader><DialogTitle className="text-white">Crear plan nutricional</DialogTitle></DialogHeader>
-        <div className="grid grid-cols-2 gap-3 py-2">
-          <div className="col-span-2 space-y-1">
-            <Label className="text-xs text-slate-400">Nombre</Label>
-            <Input placeholder="Plan Definición 2026" value={form.name} onChange={e => setForm((p: any) => ({ ...p, name: e.target.value }))}
-              className="bg-slate-800 border-slate-600 text-white h-8 text-sm" />
+      <DialogContent style={{ background: T.surface, border: `1px solid ${T.borderStrong}`, color: T.text, maxWidth: 360 }}>
+        <DialogHeader><DialogTitle style={{ color: T.text }}>Crear plan nutricional</DialogTitle></DialogHeader>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: '8px 0' }}>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <DialogField label="Nombre">
+              <DialogInput placeholder="Plan Definición 2026" value={form.name} onChange={e => setForm((p: any) => ({ ...p, name: e.target.value }))} />
+            </DialogField>
           </div>
           {[
             { key: 'kcal', label: 'Kcal objetivo', placeholder: '2400' },
@@ -276,17 +429,15 @@ function PlanDialog({ open, onClose, form, setForm, onSave }: {
             { key: 'carbs', label: 'Carbos (g)', placeholder: '240' },
             { key: 'fat', label: 'Grasa (g)', placeholder: '67' },
           ].map(f => (
-            <div key={f.key} className="space-y-1">
-              <Label className="text-xs text-slate-400">{f.label}</Label>
-              <Input type="number" placeholder={f.placeholder} value={(form as any)[f.key]}
-                onChange={e => setForm((p: any) => ({ ...p, [f.key]: e.target.value }))}
-                className="bg-slate-800 border-slate-600 text-white h-8 text-sm" />
-            </div>
+            <DialogField key={f.key} label={f.label}>
+              <DialogInput type="number" placeholder={f.placeholder} value={(form as any)[f.key]}
+                onChange={e => setForm((p: any) => ({ ...p, [f.key]: e.target.value }))} />
+            </DialogField>
           ))}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} className="border-slate-600 text-slate-300">Cancelar</Button>
-          <Button onClick={onSave} className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold">Crear</Button>
+          <GhostBtn onClick={onClose}>Cancelar</GhostBtn>
+          <AccentBtn onClick={onSave}>Crear</AccentBtn>
         </DialogFooter>
       </DialogContent>
     </Dialog>
