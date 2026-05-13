@@ -1,17 +1,41 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronRight, AlertTriangle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import type { CrmClient } from '@/types/crm';
 import type { ClientFitnessProfile, GoalCycle } from '@/types/fitness';
 import { format, differenceInDays, parseISO } from 'date-fns';
 
+const T = {
+  bg: '#0a0b0d',
+  surface: '#111215',
+  surface2: '#16181c',
+  surface3: '#1c1f24',
+  border: '#23262d',
+  borderStrong: '#2e323a',
+  text: '#f3f4f6',
+  text2: '#b6b9c2',
+  text3: '#7a7e88',
+  text4: '#50545d',
+  accent: '#c8ff3d',
+  accentInk: '#0a0b0d',
+  accentDim: 'rgba(200,255,61,0.12)',
+  accentLine: 'rgba(200,255,61,0.35)',
+  danger: '#ff5d5d',
+  warning: '#ffb547',
+  info: '#6ea8ff',
+  good: '#51e2a8',
+};
+
 const CYCLE_LABELS: Record<GoalCycle, string> = {
-  definition: '🔥 Definición',
-  bulk: '💪 Volumen',
-  recomp: '⚖️ Recomposición',
+  definition: 'Definición',
+  bulk: 'Volumen',
+  recomp: 'Recomposición',
+};
+
+const CYCLE_DESC: Record<GoalCycle, string> = {
+  definition: 'Reducción de grasa corporal',
+  bulk: 'Aumento de masa muscular',
+  recomp: 'Mejora de composición corporal',
 };
 
 function getInitials(name: string) {
@@ -20,6 +44,21 @@ function getInitials(name: string) {
   if (words[0]?.length >= 2) return words[0].substring(0, 2).toUpperCase();
   return words[0]?.charAt(0).toUpperCase() || '?';
 }
+
+const SectionHeader = ({ label, micro }: { label: string; micro?: string }) => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+    <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: T.text3 }}>
+      {label}
+    </span>
+    {micro && <span style={{ fontSize: 11, color: T.text4, fontFamily: "'JetBrains Mono', monospace" }}>{micro}</span>}
+  </div>
+);
+
+const Section = ({ children, noBorder }: { children: React.ReactNode; noBorder?: boolean }) => (
+  <div style={{ padding: '18px 0', borderBottom: noBorder ? 'none' : `1px solid ${T.border}` }}>
+    {children}
+  </div>
+);
 
 interface Props {
   client: CrmClient;
@@ -36,142 +75,288 @@ export function LeftPanel({ client, profile, onSaveProfile }: Props) {
     ? differenceInDays(parseISO(profile.subscription_end), new Date())
     : null;
 
-  const subColor = daysLeft === null ? '#64748b' : daysLeft <= 3 ? '#ef4444' : daysLeft <= 7 ? '#f59e0b' : '#10b981';
+  const subColor = daysLeft === null ? T.text3 : daysLeft <= 3 ? T.danger : daysLeft <= 7 ? T.warning : T.good;
   const subPct = daysLeft === null ? 0 : Math.min(100, Math.max(0, (daysLeft / 30) * 100));
 
+  const statusDotColor = client.status === 'active' ? T.good : client.status === 'paused' ? T.warning : T.text3;
+
+  const goalCycle: GoalCycle = profile?.goal_cycle ?? 'definition';
+
+  // Macro bar widths
+  const proteinPct = profile?.protein_g ? Math.min(100, (profile.protein_g / 200) * 100) : 0;
+  const carbsPct = profile?.carbs_g ? Math.min(100, (profile.carbs_g / 300) * 100) : 0;
+  const fatPct = profile?.fat_g ? Math.min(100, (profile.fat_g / 100) * 100) : 0;
+
+  const inputStyle: React.CSSProperties = {
+    background: T.surface2,
+    border: `1px solid ${T.border}`,
+    borderRadius: 8,
+    color: T.text,
+    fontSize: 12,
+    height: 32,
+    padding: '0 10px',
+    width: '100%',
+    outline: 'none',
+    fontFamily: 'inherit',
+    boxSizing: 'border-box',
+  };
+
   return (
-    <div className="flex flex-col gap-3 h-full overflow-y-auto pb-4" style={{ minWidth: 200 }}>
-      {/* Avatar */}
-      <div className="text-center pt-2">
-        <div className="w-14 h-14 rounded-full flex items-center justify-center font-bold text-white text-xl mx-auto mb-2"
-          style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
-          {initials}
-        </div>
-        <p className="text-sm font-semibold text-white leading-tight">{displayName}</p>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Desde {format(new Date(client.created_at), 'MMM yyyy')}
-        </p>
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
 
-      {/* Alergias */}
-      {profile?.allergies && (
-        <div className="rounded-lg border border-red-500 bg-red-500/10 px-3 py-2">
-          <div className="flex items-center gap-1.5 mb-1">
-            <AlertTriangle className="w-3 h-3 text-red-400" />
-            <span className="text-xs font-bold text-red-400 uppercase tracking-wide">Alergias</span>
-          </div>
-          <p className="text-xs text-red-300 leading-snug">{profile.allergies}</p>
-        </div>
-      )}
-
-      {/* Ciclo */}
-      <div className="rounded-lg bg-slate-800 px-3 py-2">
-        <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-1">Ciclo actual</p>
-        <Select
-          value={profile?.goal_cycle ?? 'definition'}
-          onValueChange={v => onSaveProfile({ goal_cycle: v as GoalCycle })}
-        >
-          <SelectTrigger className="h-7 border-0 bg-transparent p-0 text-amber-400 font-bold text-sm focus:ring-0">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="definition">🔥 Definición</SelectItem>
-            <SelectItem value="bulk">💪 Volumen</SelectItem>
-            <SelectItem value="recomp">⚖️ Recomposición</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Métricas clave (last recorded — read only, from fitness_metrics) */}
-      <div className="grid grid-cols-2 gap-1.5">
-        {[
-          { label: 'Peso', value: null, color: '#f59e0b', unit: 'kg', field: 'weight' },
-          { label: '% Grasa', value: null, color: '#10b981', unit: '%', field: 'fat' },
-          { label: 'Músculo', value: null, color: '#6366f1', unit: 'kg', field: 'muscle' },
-          { label: 'IMC', value: null, color: '#94a3b8', unit: '', field: 'bmi' },
-        ].map(m => (
-          <div key={m.field} className="rounded-md bg-slate-900 px-2 py-1.5 text-center">
-            <p className="text-xs font-bold" style={{ color: m.color }}>—</p>
-            <p className="text-[9px] text-slate-500">{m.label}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Macros objetivo */}
-      <div className="rounded-lg bg-slate-800 px-3 py-2">
-        <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-1">Objetivo diario</p>
-        <p className="text-sm font-bold text-white">{profile?.kcal_target ?? '—'} kcal</p>
-        <div className="flex gap-1.5 mt-1 flex-wrap">
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300">P {profile?.protein_g ?? '—'}g</span>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">C {profile?.carbs_g ?? '—'}g</span>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">G {profile?.fat_g ?? '—'}g</span>
-        </div>
-      </div>
-
-      {/* Suscripción */}
-      <div className="rounded-lg bg-slate-800 px-3 py-2">
-        <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-1">Suscripción</p>
-        {daysLeft !== null ? (
-          <>
-            <p className="text-xs font-semibold" style={{ color: subColor }}>
-              {daysLeft <= 0 ? '⚠ Vencida' : `✓ ${daysLeft} días restantes`}
-            </p>
-            <div className="h-1 rounded-full bg-slate-700 mt-1.5">
-              <div className="h-1 rounded-full transition-all" style={{ width: `${subPct}%`, backgroundColor: subColor }} />
+      {/* ── Identity card ── */}
+      <Section>
+        <div style={{ display: 'grid', gridTemplateColumns: '56px 1fr', gap: 14, alignItems: 'center' }}>
+          {/* Avatar */}
+          <div style={{ position: 'relative', width: 56, height: 56 }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: 14,
+              background: 'linear-gradient(135deg, #2a2d34, #1a1c20)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: T.text, fontSize: 18, fontWeight: 600,
+            }}>
+              {initials}
             </div>
-            <p className="text-[9px] text-slate-500 mt-1">
-              Vence {format(parseISO(profile!.subscription_end!), 'dd MMM yyyy')}
-            </p>
-          </>
-        ) : (
-          <p className="text-xs text-slate-500">Sin fecha configurada</p>
-        )}
-      </div>
+            <span style={{
+              position: 'absolute', bottom: 0, right: 0,
+              width: 14, height: 14, borderRadius: '50%',
+              background: statusDotColor,
+              border: `3px solid ${T.bg}`,
+            }} />
+          </div>
+          {/* Meta */}
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 600, color: T.text, lineHeight: 1.3, marginBottom: 2 }}>
+              {displayName}
+            </div>
+            <div style={{ fontSize: 12, color: T.text3, marginBottom: 6 }}>
+              Desde {format(new Date(client.created_at), 'MMM yyyy')}
+            </div>
+            {profile?.goal_cycle && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center',
+                padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600,
+                background: T.accentDim, color: T.accent,
+              }}>
+                {CYCLE_LABELS[profile.goal_cycle]}
+              </span>
+            )}
+          </div>
+        </div>
+      </Section>
 
-      {/* Configurar perfil rápido */}
-      <div className="rounded-lg bg-slate-800 px-3 py-2">
-        <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-2">Config. perfil</p>
-        <div className="flex flex-col gap-2">
-          <Input
-            type="number" placeholder="Kcal objetivo"
+      {/* ── Métricas clave ── */}
+      <Section>
+        <SectionHeader label="Métricas clave" micro="7d" />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          {[
+            { lbl: 'Peso', val: '—', delta: '—', unit: 'kg' },
+            { lbl: '% Grasa', val: '—', delta: '—', unit: '%' },
+            { lbl: 'Músculo', val: '—', delta: '—', unit: 'kg' },
+            { lbl: 'IMC', val: '—', delta: '—', unit: '' },
+          ].map(m => (
+            <div key={m.lbl} style={{
+              background: T.surface2, border: `1px solid ${T.border}`,
+              borderRadius: 10, padding: 12,
+            }}>
+              <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: T.text3, marginBottom: 4 }}>
+                {m.lbl}
+              </div>
+              <div style={{ fontSize: 18, fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, color: T.text, lineHeight: 1 }}>
+                {m.val}
+              </div>
+              <div style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: T.text4, marginTop: 4 }}>
+                {m.delta}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* ── Ciclo actual ── */}
+      <Section>
+        <SectionHeader label="Ciclo actual" />
+        <div style={{ position: 'relative' }}>
+          <Select
+            value={goalCycle}
+            onValueChange={v => onSaveProfile({ goal_cycle: v as GoalCycle })}
+          >
+            <SelectTrigger asChild>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                background: T.surface2, border: `1px solid ${T.border}`,
+                borderRadius: 10, padding: '12px', cursor: 'pointer',
+              }}>
+                {/* Fire icon */}
+                <div style={{
+                  width: 36, height: 36, borderRadius: 9, flexShrink: 0,
+                  background: T.accentDim, color: T.accent,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12.993 1.036C12.695.338 11.9.014 11.22.372 8.108 2.03 6.05 5.23 6.05 8.942c0 1.082.196 2.12.553 3.078a5.89 5.89 0 0 1-1.013-3.265c0-.595.073-1.174.211-1.727C4.255 8.69 3 11.03 3 13.624 3 18.29 7.03 22 12 22s9-3.71 9-8.376c0-4.14-2.962-7.587-6.935-8.44-.028-.006-.049-.1-.072-.148Z" />
+                  </svg>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{CYCLE_LABELS[goalCycle]}</div>
+                  <div style={{ fontSize: 11, color: T.text3, marginTop: 2 }}>{CYCLE_DESC[goalCycle]}</div>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.text3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="definition">Definición</SelectItem>
+              <SelectItem value="bulk">Volumen</SelectItem>
+              <SelectItem value="recomp">Recomposición</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </Section>
+
+      {/* ── Objetivo diario ── */}
+      <Section>
+        <SectionHeader label="Objetivo diario" micro={`${profile?.kcal_target ?? '—'} kcal`} />
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 14 }}>
+          <span style={{ fontSize: 22, fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: T.text }}>
+            {profile?.kcal_target ?? '—'}
+          </span>
+          <span style={{ fontSize: 13, color: T.text3 }}>kcal</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
+          {[
+            { label: 'Proteína', value: profile?.protein_g ? `${profile.protein_g}g` : '—', pct: proteinPct, color: '#a78bff' },
+            { label: 'Carbs', value: profile?.carbs_g ? `${profile.carbs_g}g` : '—', pct: carbsPct, color: T.warning },
+            { label: 'Grasa', value: profile?.fat_g ? `${profile.fat_g}g` : '—', pct: fatPct, color: T.good },
+          ].map(m => (
+            <div key={m.label} style={{
+              background: T.surface2, border: `1px solid ${T.border}`,
+              borderRadius: 10, padding: 10,
+            }}>
+              <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: T.text3, marginBottom: 4 }}>
+                {m.label}
+              </div>
+              <div style={{ fontSize: 14, fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, color: T.text, marginBottom: 6 }}>
+                {m.value}
+              </div>
+              <div style={{ height: 3, borderRadius: 2, background: T.surface3 }}>
+                <div style={{ height: 3, borderRadius: 2, width: `${m.pct}%`, background: m.color, transition: 'width 0.3s' }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* ── Suscripción ── */}
+      <Section>
+        <SectionHeader label="Suscripción" micro="Plan Pro" />
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          background: T.surface2, border: `1px solid ${T.border}`,
+          borderRadius: 10, padding: '10px 12px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: subColor, flexShrink: 0, display: 'inline-block' }} />
+            <span style={{ fontSize: 12, color: T.text2 }}>
+              {profile?.subscription_end
+                ? `Renueva ${format(parseISO(profile.subscription_end), 'dd MMM yy')}`
+                : 'Sin fecha'}
+            </span>
+          </div>
+          <span style={{ fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: T.text2 }}>
+            {daysLeft !== null ? `${daysLeft}d` : '—'}
+          </span>
+        </div>
+      </Section>
+
+      {/* ── Configurar perfil ── */}
+      <Section>
+        <SectionHeader label="Config. perfil" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <input
+            type="number"
+            placeholder="Kcal objetivo"
             defaultValue={profile?.kcal_target ?? ''}
-            className="h-7 text-xs bg-slate-900 border-slate-700 text-white"
+            style={inputStyle}
             onBlur={e => { const v = parseInt(e.target.value); if (!isNaN(v)) onSaveProfile({ kcal_target: v }); }}
           />
-          <Input
-            type="date" placeholder="Fin suscripción"
+          <input
+            type="date"
+            placeholder="Fin suscripción"
             defaultValue={profile?.subscription_end ?? ''}
-            className="h-7 text-xs bg-slate-900 border-slate-700 text-white"
+            style={inputStyle}
             onBlur={e => { if (e.target.value) onSaveProfile({ subscription_end: e.target.value }); }}
           />
           <Textarea
             placeholder="Alergias / intolerancias..."
             defaultValue={profile?.allergies ?? ''}
-            className="text-xs bg-slate-900 border-slate-700 text-white resize-none"
+            style={{
+              background: T.surface2, border: `1px solid ${T.border}`,
+              borderRadius: 8, color: T.text, fontSize: 12,
+              padding: '8px 10px', resize: 'none', fontFamily: 'inherit',
+              outline: 'none',
+            }}
             rows={2}
             onBlur={e => onSaveProfile({ allergies: e.target.value || null })}
           />
         </div>
-      </div>
+      </Section>
 
-      {/* Info de contacto colapsable */}
-      <button
-        className="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-200 transition-colors px-1"
-        onClick={() => setContactOpen(v => !v)}
-      >
-        {contactOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-        Info de contacto
-      </button>
-      {contactOpen && (
-        <div className="rounded-lg bg-slate-800 px-3 py-2 flex flex-col gap-1 text-xs">
-          {client.email && <p className="text-slate-300 truncate">📧 {client.email}</p>}
-          {client.phone && <p className="text-slate-300">📞 {client.phone}</p>}
-          {client.website && <p className="text-slate-400 truncate">🌐 {client.website.replace(/^https?:\/\//, '')}</p>}
-          {!client.email && !client.phone && !client.website && (
-            <p className="text-slate-500">Sin datos de contacto</p>
-          )}
-        </div>
-      )}
+      {/* ── Contacto ── */}
+      <Section>
+        <button
+          onClick={() => setContactOpen(v => !v)}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+            marginBottom: contactOpen ? 12 : 0,
+          }}
+        >
+          <SectionHeader label="Contacto" />
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.text3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            style={{ transform: contactOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', flexShrink: 0 }}>
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+        {contactOpen && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {[
+              { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>, text: client.email || '—' },
+              { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 14 19.79 19.79 0 0 1 1.61 5.44 2 2 0 0 1 3.6 3.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10a16 16 0 0 0 6 6l.9-.9a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" /></svg>, text: client.phone || '—' },
+              { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>, text: client.website ? client.website.replace(/^https?:\/\//, '') : '—' },
+              { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>, text: 'Zona horaria · —' },
+            ].map((item, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 4px', color: T.text2, fontSize: 12 }}>
+                <span style={{ color: T.text3, flexShrink: 0 }}>{item.icon}</span>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.text}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </Section>
+
+      {/* ── Bottom: Archivar ── */}
+      <Section noBorder>
+        <button
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            background: 'none', border: `1px solid ${T.border}`, borderRadius: 8,
+            padding: '9px 14px', cursor: 'pointer', color: T.text3, fontSize: 13, fontWeight: 500,
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = T.danger; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,93,93,0.08)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,93,93,0.3)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = T.text3; (e.currentTarget as HTMLButtonElement).style.background = 'none'; (e.currentTarget as HTMLButtonElement).style.borderColor = T.border; }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+            <path d="M10 11v6" /><path d="M14 11v6" />
+            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+          </svg>
+          Archivar cliente
+        </button>
+      </Section>
+
     </div>
   );
 }

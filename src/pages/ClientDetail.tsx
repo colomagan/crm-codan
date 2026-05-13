@@ -3,9 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { CrmClient, ClientStatus } from '@/types/crm';
 import { LeftPanel } from '@/components/fitness/LeftPanel';
@@ -16,20 +14,47 @@ import { TrainingTab } from '@/components/fitness/tabs/TrainingTab';
 import { NutritionTab } from '@/components/fitness/tabs/NutritionTab';
 import { useFitnessProfile } from '@/hooks/fitness/useFitnessProfile';
 
+const T = {
+  bg: '#0a0b0d',
+  surface: '#111215',
+  surface2: '#16181c',
+  surface3: '#1c1f24',
+  border: '#23262d',
+  borderStrong: '#2e323a',
+  text: '#f3f4f6',
+  text2: '#b6b9c2',
+  text3: '#7a7e88',
+  text4: '#50545d',
+  accent: '#c8ff3d',
+  accentInk: '#0a0b0d',
+  accentDim: 'rgba(200,255,61,0.12)',
+  accentLine: 'rgba(200,255,61,0.35)',
+  danger: '#ff5d5d',
+  warning: '#ffb547',
+  info: '#6ea8ff',
+  good: '#51e2a8',
+};
+
 type Tab = 'metrics' | 'body' | 'checkins' | 'training' | 'nutrition';
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: 'metrics',   label: 'Métricas',       icon: '📊' },
-  { id: 'body',      label: 'Cuerpo',          icon: '🫀' },
-  { id: 'checkins',  label: 'Check-ins',       icon: '📸' },
-  { id: 'training',  label: 'Entrenamiento',   icon: '💪' },
-  { id: 'nutrition', label: 'Nutrición',       icon: '🥗' },
+const TABS: { id: Tab; label: string }[] = [
+  { id: 'metrics',   label: 'Métricas' },
+  { id: 'body',      label: 'Cuerpo' },
+  { id: 'checkins',  label: 'Check-ins' },
+  { id: 'training',  label: 'Entrenamiento' },
+  { id: 'nutrition', label: 'Nutrición' },
 ];
 
 const STATUS_COLORS: Record<ClientStatus, string> = {
   active:   '#10b981',
   inactive: '#64748b',
   paused:   '#f59e0b',
+};
+
+const STATUS_LABELS: Record<ClientStatus, string> = {
+  active:   'Activo',
+  inactive: 'Inactivo',
+  paused:   'Pausado',
 };
 
 export default function ClientDetail() {
@@ -62,9 +87,17 @@ export default function ClientDetail() {
 
   if (loading || !client) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
-        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-          className="w-10 h-10 rounded-full border-4 border-transparent border-t-indigo-500 border-r-indigo-500/40" />
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: T.bg }}>
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+          style={{
+            width: 40, height: 40, borderRadius: '50%',
+            border: `4px solid transparent`,
+            borderTopColor: T.accent,
+            borderRightColor: `${T.accent}40`,
+          }}
+        />
       </div>
     );
   }
@@ -73,59 +106,141 @@ export default function ClientDetail() {
   const statusColor = STATUS_COLORS[client.status];
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#020617' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: T.bg, fontFamily: 'system-ui, sans-serif' }}>
+
       {/* TOP BAR */}
-      <div className="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/90 backdrop-blur">
-        <div className="px-4 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-slate-400 hover:text-white h-8 w-8">
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-            <div className="flex items-center gap-2">
-              <h1 className="text-base font-bold text-white leading-tight">{displayName}</h1>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold border"
-                style={{ color: statusColor, borderColor: `${statusColor}40`, background: `${statusColor}15` }}>
-                ● {client.status === 'active' ? 'Activo' : client.status === 'paused' ? 'Pausado' : 'Inactivo'}
-              </span>
-            </div>
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 20,
+        height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 24px', gap: 16,
+        background: T.bg, borderBottom: `1px solid ${T.border}`,
+      }}>
+        {/* Left: back + breadcrumb */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button
+            onClick={() => navigate(-1)}
+            style={{
+              width: 32, height: 32, borderRadius: 8,
+              background: 'transparent', border: `1px solid ${T.border}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', color: T.text3, flexShrink: 0,
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 13, color: T.text3 }}>Clientes</span>
+            <span style={{ fontSize: 13, color: T.text4 }}>/</span>
+            <span style={{ fontSize: 13, color: T.text, fontWeight: 600 }}>{displayName}</span>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600,
+              color: statusColor,
+              border: `1px solid ${statusColor}40`,
+              background: `${statusColor}15`,
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: statusColor, display: 'inline-block' }} />
+              {STATUS_LABELS[client.status]}
+            </span>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setDeleteOpen(true)}
-              className="h-7 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10">
-              Eliminar
-            </Button>
-          </div>
+        </div>
+
+        {/* Right: icon buttons + actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* Message icon */}
+          <button style={{ width: 32, height: 32, borderRadius: 8, background: 'transparent', border: `1px solid ${T.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: T.text3 }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+          </button>
+          {/* Phone icon */}
+          <button style={{ width: 32, height: 32, borderRadius: 8, background: 'transparent', border: `1px solid ${T.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: T.text3 }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 14 19.79 19.79 0 0 1 1.61 5.44 2 2 0 0 1 3.6 3.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10a16 16 0 0 0 6 6l.9-.9a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+            </svg>
+          </button>
+          {/* More icon */}
+          <button style={{ width: 32, height: 32, borderRadius: 8, background: 'transparent', border: `1px solid ${T.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: T.text3 }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" />
+            </svg>
+          </button>
+
+          <div style={{ width: 1, height: 24, background: T.border, margin: '0 4px' }} />
+
+          <button style={{
+            height: 32, padding: '0 14px', borderRadius: 8, fontSize: 12, fontWeight: 500,
+            background: 'transparent', border: `1px solid ${T.border}`, color: T.text2, cursor: 'pointer',
+          }}>
+            Exportar informe
+          </button>
+
+          <button style={{
+            height: 32, padding: '0 14px', borderRadius: 8, fontSize: 12, fontWeight: 600,
+            background: T.accent, border: 'none', color: T.accentInk, cursor: 'pointer',
+          }}>
+            Nuevo registro
+          </button>
+
+          <div style={{ width: 1, height: 24, background: T.border, margin: '0 4px' }} />
+
+          {/* Delete — danger ghost */}
+          <button
+            onClick={() => setDeleteOpen(true)}
+            style={{
+              height: 32, padding: '0 12px', borderRadius: 8, fontSize: 12, fontWeight: 500,
+              background: 'transparent', border: `1px solid transparent`, color: T.danger, cursor: 'pointer',
+            }}
+          >
+            Eliminar
+          </button>
         </div>
       </div>
 
       {/* MAIN LAYOUT */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* LEFT PANEL */}
-        <div className="w-52 flex-shrink-0 border-r border-slate-800 bg-slate-950 px-3 py-4 overflow-y-auto">
+      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', flex: 1, overflow: 'hidden' }}>
+
+        {/* SIDEBAR */}
+        <div style={{
+          borderRight: `1px solid ${T.border}`,
+          padding: '24px 20px',
+          minHeight: 'calc(100vh - 64px)',
+          overflowY: 'auto',
+          background: T.bg,
+        }}>
           <LeftPanel client={client} profile={profile} onSaveProfile={saveProfile} />
         </div>
 
-        {/* RIGHT: TABS + CONTENT */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        {/* MAIN: tab bar + content */}
+        <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {/* Tab bar */}
-          <div className="border-b border-slate-800 bg-slate-950 px-4 flex gap-0.5 flex-shrink-0">
+          <div style={{
+            position: 'sticky', top: 64, zIndex: 4,
+            background: T.bg, borderBottom: `1px solid ${T.border}`,
+            display: 'flex', gap: 4, padding: '0 28px', flexShrink: 0,
+          }}>
             {TABS.map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                className="px-4 py-3 text-xs font-medium transition-colors relative flex items-center gap-1.5"
-                style={activeTab === tab.id
-                  ? { color: '#6366f1' }
-                  : { color: '#475569' }}>
-                <span>{tab.icon}</span>
-                <span>{tab.label}</span>
-                {activeTab === tab.id && (
-                  <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-t" />
-                )}
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  padding: '14px 14px',
+                  fontSize: 13, fontWeight: 500,
+                  background: 'transparent', border: 'none', cursor: 'pointer',
+                  color: activeTab === tab.id ? T.text : T.text3,
+                  borderBottom: activeTab === tab.id ? `2px solid ${T.accent}` : '2px solid transparent',
+                  transition: 'color 0.15s, border-color 0.15s',
+                }}
+              >
+                {tab.label}
               </button>
             ))}
           </div>
 
           {/* Tab content */}
-          <div className="flex-1 overflow-y-auto bg-slate-950">
+          <div style={{ flex: 1, overflowY: 'auto', background: T.bg }}>
             <motion.div key={activeTab} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
               {activeTab === 'metrics'   && <MetricsTab   clientId={client.id} />}
               {activeTab === 'body'      && <BodyMappingTab clientId={client.id} />}
