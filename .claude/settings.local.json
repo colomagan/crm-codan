@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(grep -E \"\\\\.\\(sql|ts|json\\)$\")",
+      "Bash(xargs wc *)",
+      "Bash(bash *)"
+    ]
+  }
+}

@@ -1,0 +1,319 @@
+<h2>Diseño — Sección 3: Tabs Cuerpo · Check-ins · Entrenamiento · Nutrición</h2>
+<p class="subtitle">Mockups de las 4 tabs restantes. Aprobá para cerrar el diseño.</p>
+
+<div style="display:flex;flex-direction:column;gap:20px;margin-top:16px;">
+
+  <!-- TAB: CUERPO -->
+  <div style="border:2px solid #6366f1;border-radius:10px;overflow:hidden;">
+    <div style="background:#6366f1;padding:8px 16px;font-size:12px;font-weight:700;color:white;">🫀 Tab: Cuerpo — Body Mapping SVG</div>
+    <div style="background:#0f172a;padding:14px;display:grid;grid-template-columns:220px 1fr;gap:14px;">
+      <!-- SVG body -->
+      <div style="text-align:center;">
+        <div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px;">
+          <div style="padding:4px 10px;background:#6366f1;border-radius:5px;font-size:10px;color:white;cursor:pointer;">Frontal</div>
+          <div style="padding:4px 10px;background:#1e293b;border-radius:5px;font-size:10px;color:#94a3b8;cursor:pointer;">Trasero</div>
+        </div>
+        <!-- Toggle layers -->
+        <div style="display:flex;gap:4px;justify-content:center;margin-bottom:10px;">
+          <div style="padding:3px 8px;background:#ef444422;border:1px solid #ef4444;border-radius:4px;font-size:9px;color:#ef4444;">Grasa</div>
+          <div style="padding:3px 8px;background:#6366f122;border:1px solid #6366f1;border-radius:4px;font-size:9px;color:#818cf8;">Músculo</div>
+          <div style="padding:3px 8px;background:#1e293b;border-radius:4px;font-size:9px;color:#64748b;">Medidas</div>
+        </div>
+        <!-- SVG body schematic with heatmap zones -->
+        <svg viewBox="0 0 80 180" width="80" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto;">
+          <!-- Head -->
+          <circle cx="40" cy="16" r="12" fill="#1e3a5f" stroke="#334155" stroke-width="1"/>
+          <!-- Neck -->
+          <rect x="36" y="27" width="8" height="8" rx="2" fill="#1e3a5f" stroke="#334155" stroke-width="1"/>
+          <!-- Shoulders -->
+          <rect x="14" y="33" width="18" height="10" rx="3" fill="#ef4444" opacity=".5" stroke="#ef4444" stroke-width="1"/>
+          <rect x="48" y="33" width="18" height="10" rx="3" fill="#1e3a5f" stroke="#334155" stroke-width="1"/>
+          <!-- Chest -->
+          <rect x="24" y="35" width="32" height="18" rx="3" fill="#10b981" opacity=".5" stroke="#10b981" stroke-width="1"/>
+          <!-- Abs / Waist -->
+          <rect x="26" y="55" width="28" height="22" rx="3" fill="#ef4444" opacity=".7" stroke="#ef4444" stroke-width="1"/>
+          <!-- Hips -->
+          <rect x="22" y="79" width="36" height="14" rx="3" fill="#f59e0b" opacity=".5" stroke="#f59e0b" stroke-width="1"/>
+          <!-- Left arm -->
+          <rect x="10" y="35" width="12" height="38" rx="4" fill="#10b981" opacity=".4" stroke="#10b981" stroke-width="1"/>
+          <!-- Right arm -->
+          <rect x="58" y="35" width="12" height="38" rx="4" fill="#1e3a5f" stroke="#334155" stroke-width="1"/>
+          <!-- Left thigh -->
+          <rect x="24" y="95" width="14" height="36" rx="4" fill="#6366f1" opacity=".5" stroke="#6366f1" stroke-width="1"/>
+          <!-- Right thigh -->
+          <rect x="42" y="95" width="14" height="36" rx="4" fill="#1e3a5f" stroke="#334155" stroke-width="1"/>
+          <!-- Left calf -->
+          <rect x="25" y="133" width="12" height="30" rx="4" fill="#1e3a5f" stroke="#334155" stroke-width="1"/>
+          <!-- Right calf -->
+          <rect x="43" y="133" width="12" height="30" rx="4" fill="#1e3a5f" stroke="#334155" stroke-width="1"/>
+        </svg>
+        <div style="margin-top:8px;font-size:9px;color:#475569;">Hover sobre zona → tooltip con medidas</div>
+        <!-- Legend -->
+        <div style="display:flex;justify-content:center;gap:8px;margin-top:8px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:3px;font-size:9px;color:#ef4444;"><div style="width:8px;height:8px;background:#ef4444;border-radius:2px;opacity:.7;"></div>↓ grasa</div>
+          <div style="display:flex;align-items:center;gap:3px;font-size:9px;color:#10b981;"><div style="width:8px;height:8px;background:#10b981;border-radius:2px;opacity:.7;"></div>↑ músculo</div>
+          <div style="display:flex;align-items:center;gap:3px;font-size:9px;color:#f59e0b;"><div style="width:8px;height:8px;background:#f59e0b;border-radius:2px;opacity:.7;"></div>sin cambio</div>
+        </div>
+      </div>
+      <!-- Measurement table -->
+      <div>
+        <div style="font-size:11px;font-weight:600;color:#e2e8f0;margin-bottom:10px;">Medidas actuales vs mes anterior</div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div style="display:grid;grid-template-columns:1fr 60px 60px 50px;background:#1e293b;border-radius:6px;padding:6px 10px;">
+            <div style="font-size:10px;color:#64748b;">ZONA</div><div style="font-size:10px;color:#64748b;">ACTUAL</div><div style="font-size:10px;color:#64748b;">ANT.</div><div style="font-size:10px;color:#64748b;">Δ</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 60px 60px 50px;padding:5px 10px;background:#0f172a;border-radius:5px;">
+            <div style="font-size:11px;color:#94a3b8;">Cintura</div><div style="font-size:11px;color:#e2e8f0;">82 cm</div><div style="font-size:11px;color:#94a3b8;">84 cm</div><div style="font-size:11px;color:#ef4444;">↓2</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 60px 60px 50px;padding:5px 10px;background:#0f172a;border-radius:5px;">
+            <div style="font-size:11px;color:#94a3b8;">Pecho</div><div style="font-size:11px;color:#e2e8f0;">102 cm</div><div style="font-size:11px;color:#94a3b8;">100 cm</div><div style="font-size:11px;color:#10b981;">↑2</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 60px 60px 50px;padding:5px 10px;background:#0f172a;border-radius:5px;">
+            <div style="font-size:11px;color:#94a3b8;">Bícep Izq.</div><div style="font-size:11px;color:#e2e8f0;">36 cm</div><div style="font-size:11px;color:#94a3b8;">35 cm</div><div style="font-size:11px;color:#10b981;">↑1</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 60px 60px 50px;padding:5px 10px;background:#0f172a;border-radius:5px;">
+            <div style="font-size:11px;color:#94a3b8;">Cadera</div><div style="font-size:11px;color:#e2e8f0;">96 cm</div><div style="font-size:11px;color:#94a3b8;">97 cm</div><div style="font-size:11px;color:#ef4444;">↓1</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 60px 60px 50px;padding:5px 10px;background:#0f172a;border-radius:5px;">
+            <div style="font-size:11px;color:#94a3b8;">Muslo Izq.</div><div style="font-size:11px;color:#e2e8f0;">58 cm</div><div style="font-size:11px;color:#94a3b8;">58 cm</div><div style="font-size:11px;color:#64748b;">—</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 60px 60px 50px;padding:5px 10px;background:#0f172a;border-radius:5px;">
+            <div style="font-size:11px;color:#94a3b8;">Hombros</div><div style="font-size:11px;color:#e2e8f0;">118 cm</div><div style="font-size:11px;color:#94a3b8;">116 cm</div><div style="font-size:11px;color:#10b981;">↑2</div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+          <div style="padding:5px 12px;background:#6366f1;border-radius:6px;font-size:10px;color:white;cursor:pointer;">+ Registrar medidas</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: CHECK-INS -->
+  <div style="border:2px solid #ec4899;border-radius:10px;overflow:hidden;">
+    <div style="background:#ec4899;padding:8px 16px;font-size:12px;font-weight:700;color:white;">📸 Tab: Check-ins — Fotos + Adherencia</div>
+    <div style="background:#0f172a;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <!-- Foto section -->
+      <div>
+        <div style="font-size:11px;font-weight:600;color:#e2e8f0;margin-bottom:8px;">Carpetas de fotos</div>
+        <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px;">
+          <div style="background:#1e293b;border-radius:6px;padding:7px 10px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+            <div style="font-size:11px;color:#e2e8f0;">📁 12 May 2026</div>
+            <div style="font-size:10px;color:#64748b;">3 fotos</div>
+          </div>
+          <div style="background:#1e293b;border-radius:6px;padding:7px 10px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;opacity:.7;">
+            <div style="font-size:11px;color:#94a3b8;">📁 5 May 2026</div>
+            <div style="font-size:10px;color:#64748b;">3 fotos</div>
+          </div>
+          <div style="background:#1e293b;border-radius:6px;padding:7px 10px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;opacity:.5;">
+            <div style="font-size:11px;color:#94a3b8;">📁 28 Abr 2026</div>
+            <div style="font-size:10px;color:#64748b;">2 fotos</div>
+          </div>
+        </div>
+        <!-- Antes/Después slider -->
+        <div style="font-size:11px;font-weight:600;color:#e2e8f0;margin-bottom:6px;">Antes vs Después</div>
+        <div style="background:#1e293b;border-radius:8px;height:80px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;width:50%;height:100%;background:#334155;display:flex;align-items:center;justify-content:center;">
+            <div style="font-size:9px;color:#64748b;">28 Abr</div>
+          </div>
+          <div style="position:absolute;right:0;top:0;width:50%;height:100%;background:#1e3a5f;display:flex;align-items:center;justify-content:center;">
+            <div style="font-size:9px;color:#64748b;">12 May</div>
+          </div>
+          <div style="position:absolute;left:50%;top:0;width:2px;height:100%;background:white;z-index:2;"></div>
+          <div style="position:absolute;left:calc(50% - 12px);top:calc(50% - 12px);width:24px;height:24px;background:white;border-radius:50%;z-index:3;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:ew-resize;">⟺</div>
+        </div>
+        <div style="font-size:9px;color:#64748b;text-align:center;margin-top:4px;">Arrastrar para comparar</div>
+      </div>
+      <!-- Check-in semanal -->
+      <div>
+        <div style="font-size:11px;font-weight:600;color:#e2e8f0;margin-bottom:8px;">Check-in semanal</div>
+        <div style="background:#1e293b;border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px;">
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+              <div style="font-size:10px;color:#94a3b8;">😴 Sueño</div>
+              <div style="font-size:10px;color:#e2e8f0;font-weight:700;">8/10</div>
+            </div>
+            <div style="height:4px;background:#0f172a;border-radius:2px;"><div style="width:80%;height:4px;background:#6366f1;border-radius:2px;"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+              <div style="font-size:10px;color:#94a3b8;">🍽️ Hambre</div>
+              <div style="font-size:10px;color:#e2e8f0;font-weight:700;">6/10</div>
+            </div>
+            <div style="height:4px;background:#0f172a;border-radius:2px;"><div style="width:60%;height:4px;background:#f59e0b;border-radius:2px;"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+              <div style="font-size:10px;color:#94a3b8;">😤 Estrés</div>
+              <div style="font-size:10px;color:#e2e8f0;font-weight:700;">4/10</div>
+            </div>
+            <div style="height:4px;background:#0f172a;border-radius:2px;"><div style="width:40%;height:4px;background:#ef4444;border-radius:2px;"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+              <div style="font-size:10px;color:#94a3b8;">✅ Cumplimiento</div>
+              <div style="font-size:10px;color:#e2e8f0;font-weight:700;">9/10</div>
+            </div>
+            <div style="height:4px;background:#0f172a;border-radius:2px;"><div style="width:90%;height:4px;background:#10b981;border-radius:2px;"></div></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+          <div style="padding:5px 12px;background:#ec4899;border-radius:6px;font-size:10px;color:white;cursor:pointer;">+ Nuevo check-in</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: ENTRENAMIENTO -->
+  <div style="border:2px solid #10b981;border-radius:10px;overflow:hidden;">
+    <div style="background:#10b981;padding:8px 16px;font-size:12px;font-weight:700;color:white;">💪 Tab: Entrenamiento — PRs + Rutina</div>
+    <div style="background:#0f172a;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <!-- PRs -->
+      <div>
+        <div style="font-size:11px;font-weight:600;color:#e2e8f0;margin-bottom:8px;">Records de Fuerza</div>
+        <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px;">
+          <div style="background:#1e293b;border-radius:6px;padding:8px 10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <div style="font-size:11px;color:#e2e8f0;font-weight:600;">Sentadilla</div>
+              <div style="font-size:13px;font-weight:700;color:#10b981;">140 kg</div>
+            </div>
+            <div style="height:3px;background:#0f172a;border-radius:2px;"><div style="width:85%;height:3px;background:#10b981;border-radius:2px;"></div></div>
+            <div style="font-size:9px;color:#64748b;margin-top:3px;">1RM estimado · +5kg vs mes ant.</div>
+          </div>
+          <div style="background:#1e293b;border-radius:6px;padding:8px 10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <div style="font-size:11px;color:#e2e8f0;font-weight:600;">Press Banca</div>
+              <div style="font-size:13px;font-weight:700;color:#6366f1;">100 kg</div>
+            </div>
+            <div style="height:3px;background:#0f172a;border-radius:2px;"><div style="width:70%;height:3px;background:#6366f1;border-radius:2px;"></div></div>
+            <div style="font-size:9px;color:#64748b;margin-top:3px;">+2.5kg vs mes ant.</div>
+          </div>
+          <div style="background:#1e293b;border-radius:6px;padding:8px 10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <div style="font-size:11px;color:#e2e8f0;font-weight:600;">Peso Muerto</div>
+              <div style="font-size:13px;font-weight:700;color:#f59e0b;">180 kg</div>
+            </div>
+            <div style="height:3px;background:#0f172a;border-radius:2px;"><div style="width:95%;height:3px;background:#f59e0b;border-radius:2px;"></div></div>
+            <div style="font-size:9px;color:#64748b;margin-top:3px;">+5kg vs mes ant.</div>
+          </div>
+        </div>
+        <div style="padding:5px 12px;background:#1e293b;border-radius:6px;font-size:10px;color:#94a3b8;cursor:pointer;text-align:center;">+ Agregar ejercicio PR</div>
+      </div>
+      <!-- Rutina -->
+      <div>
+        <div style="font-size:11px;font-weight:600;color:#e2e8f0;margin-bottom:8px;">Rutina asignada — Día A</div>
+        <div style="display:flex;gap:4px;margin-bottom:8px;">
+          <div style="padding:3px 8px;background:#10b981;border-radius:4px;font-size:9px;color:white;">DÍA A</div>
+          <div style="padding:3px 8px;background:#1e293b;border-radius:4px;font-size:9px;color:#64748b;">DÍA B</div>
+          <div style="padding:3px 8px;background:#1e293b;border-radius:4px;font-size:9px;color:#64748b;">DÍA C</div>
+        </div>
+        <div style="background:#1e293b;border-radius:8px;overflow:hidden;">
+          <div style="display:grid;grid-template-columns:1fr 30px 30px 35px 40px 20px;padding:5px 8px;border-bottom:1px solid #334155;">
+            <div style="font-size:9px;color:#64748b;">EJERCICIO</div>
+            <div style="font-size:9px;color:#64748b;">S</div>
+            <div style="font-size:9px;color:#64748b;">R</div>
+            <div style="font-size:9px;color:#64748b;">RPE</div>
+            <div style="font-size:9px;color:#64748b;">DESC.</div>
+            <div style="font-size:9px;color:#64748b;"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 30px 30px 35px 40px 20px;padding:5px 8px;border-bottom:1px solid #0f172a;">
+            <div style="font-size:10px;color:#e2e8f0;">Sentadilla</div>
+            <div style="font-size:10px;color:#94a3b8;">4</div>
+            <div style="font-size:10px;color:#94a3b8;">6</div>
+            <div style="font-size:10px;color:#f59e0b;">@8</div>
+            <div style="font-size:10px;color:#94a3b8;">180s</div>
+            <div style="font-size:10px;color:#6366f1;cursor:pointer;">▶</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 30px 30px 35px 40px 20px;padding:5px 8px;border-bottom:1px solid #0f172a;">
+            <div style="font-size:10px;color:#e2e8f0;">Press Banca</div>
+            <div style="font-size:10px;color:#94a3b8;">4</div>
+            <div style="font-size:10px;color:#94a3b8;">8</div>
+            <div style="font-size:10px;color:#f59e0b;">@7</div>
+            <div style="font-size:10px;color:#94a3b8;">120s</div>
+            <div style="font-size:10px;color:#6366f1;cursor:pointer;">▶</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 30px 30px 35px 40px 20px;padding:5px 8px;">
+            <div style="font-size:10px;color:#e2e8f0;">Remo con barra</div>
+            <div style="font-size:10px;color:#94a3b8;">3</div>
+            <div style="font-size:10px;color:#94a3b8;">10</div>
+            <div style="font-size:10px;color:#f59e0b;">RIR2</div>
+            <div style="font-size:10px;color:#94a3b8;">90s</div>
+            <div style="font-size:10px;color:#6366f1;cursor:pointer;">▶</div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:6px;">
+          <div style="padding:5px 12px;background:#10b981;border-radius:6px;font-size:10px;color:white;cursor:pointer;">+ Agregar ejercicio</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: NUTRICIÓN -->
+  <div style="border:2px solid #f59e0b;border-radius:10px;overflow:hidden;">
+    <div style="background:#f59e0b;padding:8px 16px;font-size:12px;font-weight:700;color:#1e293b;">🥗 Tab: Nutrición — Plan + Lista de Compra</div>
+    <div style="background:#0f172a;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <!-- Plan -->
+      <div>
+        <div style="font-size:11px;font-weight:600;color:#e2e8f0;margin-bottom:8px;">Plan activo — Definición</div>
+        <!-- Macro donut placeholder -->
+        <div style="background:#1e293b;border-radius:8px;padding:10px;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:50px;height:50px;border-radius:50%;background:conic-gradient(#6366f1 0% 30%, #f59e0b 30% 70%, #10b981 70% 100%);flex-shrink:0;"></div>
+            <div>
+              <div style="font-size:16px;font-weight:700;color:white;margin-bottom:2px;">2.400 kcal</div>
+              <div style="display:flex;gap:6px;">
+                <span style="font-size:10px;color:#818cf8;">■ P 180g</span>
+                <span style="font-size:10px;color:#fbbf24;">■ C 240g</span>
+                <span style="font-size:10px;color:#34d399;">■ G 67g</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Meals -->
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div style="background:#1e293b;border-radius:6px;padding:7px 10px;">
+            <div style="font-size:10px;font-weight:600;color:#f59e0b;margin-bottom:3px;">🌅 Desayuno · 07:00</div>
+            <div style="font-size:10px;color:#94a3b8;">Avena 80g · Huevos 3u · Banana 1u</div>
+            <div style="font-size:9px;color:#64748b;margin-top:2px;">480 kcal · P:32g · C:58g · G:12g</div>
+          </div>
+          <div style="background:#1e293b;border-radius:6px;padding:7px 10px;">
+            <div style="font-size:10px;font-weight:600;color:#6366f1;margin-bottom:3px;">☀️ Almuerzo · 13:00</div>
+            <div style="font-size:10px;color:#94a3b8;">Arroz 150g · Pollo 200g · Brócoli 100g</div>
+            <div style="font-size:9px;color:#64748b;margin-top:2px;">650 kcal · P:55g · C:72g · G:8g</div>
+          </div>
+          <div style="background:#1e293b;border-radius:6px;padding:7px 10px;">
+            <div style="font-size:10px;font-weight:600;color:#ec4899;margin-bottom:3px;">🌙 Cena · 20:00</div>
+            <div style="font-size:10px;color:#94a3b8;">Salmón 180g · Batata 120g · Espinaca</div>
+            <div style="font-size:9px;color:#64748b;margin-top:2px;">580 kcal · P:46g · C:48g · G:18g</div>
+          </div>
+        </div>
+      </div>
+      <!-- Lista de compra -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div style="font-size:11px;font-weight:600;color:#e2e8f0;">🛒 Lista de compra</div>
+          <div style="padding:3px 8px;background:#f59e0b22;border:1px solid #f59e0b;border-radius:4px;font-size:9px;color:#f59e0b;cursor:pointer;">Auto-generar</div>
+        </div>
+        <div style="background:#1e293b;border-radius:8px;padding:8px;">
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="font-size:10px;font-weight:600;color:#94a3b8;padding:3px 0;border-bottom:1px solid #334155;margin-bottom:4px;">PROTEÍNAS</div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:#e2e8f0;">Pollo pechuga</span><span style="color:#64748b;">1.4 kg / sem</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:#e2e8f0;">Salmón</span><span style="color:#64748b;">1.26 kg / sem</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:#e2e8f0;">Huevos</span><span style="color:#64748b;">21 u / sem</span></div>
+            <div style="font-size:10px;font-weight:600;color:#94a3b8;padding:3px 0;border-bottom:1px solid #334155;margin:4px 0;">CARBOHIDRATOS</div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:#e2e8f0;">Arroz</span><span style="color:#64748b;">1.05 kg / sem</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:#e2e8f0;">Avena</span><span style="color:#64748b;">560 g / sem</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:#e2e8f0;">Batata</span><span style="color:#64748b;">840 g / sem</span></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:6px;">
+          <div style="padding:5px 12px;background:#f59e0b;border-radius:6px;font-size:10px;color:#1e293b;font-weight:600;cursor:pointer;">📋 Copiar lista</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:20px;padding:14px 16px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-size:13px;color:#166534;">
+  ✅ <strong>Sección 3 de 3 — Diseño completo.</strong> ¿Aprobás todas las tabs para escribir el spec y arrancar la implementación?
+</div>

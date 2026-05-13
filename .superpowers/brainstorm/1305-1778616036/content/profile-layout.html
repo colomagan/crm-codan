@@ -1,0 +1,151 @@
+<h2>Fitness Profile — Estructura de Navegación</h2>
+<p class="subtitle">¿Cómo navega el coach entre las secciones del perfil de cada cliente?</p>
+
+<div class="cards">
+
+  <!-- OPCIÓN A: Tabs horizontales -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#0f172a;border-radius:8px 8px 0 0;">
+      <!-- Header del perfil -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:16px;">JD</div>
+        <div>
+          <div style="color:white;font-weight:700;font-size:14px;">Juan Domínguez</div>
+          <div style="color:#64748b;font-size:11px;">🟢 Activo · Definición · 12 días restantes</div>
+        </div>
+      </div>
+      <!-- Tabs -->
+      <div style="display:flex;gap:2px;border-bottom:1px solid #1e293b;padding-bottom:0;">
+        <div style="padding:7px 14px;background:#6366f1;border-radius:6px 6px 0 0;font-size:11px;color:white;font-weight:600;">📊 Overview</div>
+        <div style="padding:7px 14px;font-size:11px;color:#475569;">🫀 Cuerpo</div>
+        <div style="padding:7px 14px;font-size:11px;color:#475569;">📸 Media</div>
+        <div style="padding:7px 14px;font-size:11px;color:#475569;">💪 Training</div>
+        <div style="padding:7px 14px;font-size:11px;color:#475569;">🥗 Nutrición</div>
+      </div>
+      <!-- Content area -->
+      <div style="background:#1e293b;padding:12px;border-radius:0 0 6px 6px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+          <div style="background:#0f172a;border-radius:6px;padding:10px;text-align:center;">
+            <div style="font-size:18px;font-weight:700;color:#f59e0b;">78.4kg</div>
+            <div style="font-size:10px;color:#64748b;">Peso actual</div>
+          </div>
+          <div style="background:#0f172a;border-radius:6px;padding:10px;text-align:center;">
+            <div style="font-size:18px;font-weight:700;color:#10b981;">17.2%</div>
+            <div style="font-size:10px;color:#64748b;">% Grasa</div>
+          </div>
+          <div style="background:#0f172a;border-radius:6px;padding:10px;text-align:center;">
+            <div style="font-size:18px;font-weight:700;color:#6366f1;">64.9kg</div>
+            <div style="font-size:10px;color:#64748b;">Masa muscular</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Tabs horizontales</h3>
+      <p>Header fijo con avatar + estado. 5 tabs en la parte superior. El contenido cambia debajo. Simple y familiar.</p>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+        <span style="padding:2px 8px;background:#dcfce7;border-radius:4px;font-size:11px;color:#166534;">✓ Navegación clara</span>
+        <span style="padding:2px 8px;background:#dcfce7;border-radius:4px;font-size:11px;color:#166534;">✓ Acceso rápido</span>
+        <span style="padding:2px 8px;background:#fef9c3;border-radius:4px;font-size:11px;color:#713f12;">~ Poco espacio vertical en tabs</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPCIÓN B: Sidebar lateral -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#0f172a;border-radius:8px 8px 0 0;">
+      <div style="display:flex;gap:10px;height:140px;">
+        <!-- Sidebar -->
+        <div style="width:44px;background:#1e293b;border-radius:6px;padding:8px 0;display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;margin-bottom:4px;">JD</div>
+          <div style="width:28px;height:28px;background:#6366f1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;">📊</div>
+          <div style="width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;">🫀</div>
+          <div style="width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;">📸</div>
+          <div style="width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;">💪</div>
+          <div style="width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;">🥗</div>
+        </div>
+        <!-- Main content -->
+        <div style="flex:1;background:#1e293b;border-radius:6px;padding:10px;">
+          <div style="font-size:11px;font-weight:600;color:#6366f1;margin-bottom:8px;">📊 OVERVIEW</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <div style="background:#0f172a;border-radius:5px;padding:8px;">
+              <div style="font-size:15px;font-weight:700;color:#f59e0b;">78.4 kg</div>
+              <div style="font-size:10px;color:#64748b;">Peso</div>
+            </div>
+            <div style="background:#0f172a;border-radius:5px;padding:8px;">
+              <div style="font-size:15px;font-weight:700;color:#10b981;">17.2%</div>
+              <div style="font-size:10px;color:#64748b;">Grasa</div>
+            </div>
+            <div style="background:#0f172a;border-radius:5px;padding:8px;">
+              <div style="font-size:15px;font-weight:700;color:#6366f1;">64.9 kg</div>
+              <div style="font-size:10px;color:#64748b;">Músculo</div>
+            </div>
+            <div style="background:#0f172a;border-radius:5px;padding:8px;">
+              <div style="font-size:15px;font-weight:700;color:#ec4899;">23.1</div>
+              <div style="font-size:10px;color:#64748b;">IMC</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Sidebar con iconos</h3>
+      <p>Nav vertical colapsada a la izquierda. Máximo espacio para contenido. Hover revela etiqueta.</p>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+        <span style="padding:2px 8px;background:#dcfce7;border-radius:4px;font-size:11px;color:#166534;">✓ Máximo espacio útil</span>
+        <span style="padding:2px 8px;background:#fef9c3;border-radius:4px;font-size:11px;color:#713f12;">~ Solo iconos = menos claro</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPCIÓN C: Tabs + panel fijo -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:#0f172a;border-radius:8px 8px 0 0;">
+      <div style="display:grid;grid-template-columns:140px 1fr;gap:8px;height:140px;">
+        <!-- Panel izquierdo fijo -->
+        <div style="background:#1e293b;border-radius:6px;padding:10px;">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#ef4444);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:12px;margin-bottom:8px;">JD</div>
+          <div style="font-size:11px;font-weight:700;color:white;">Juan D.</div>
+          <div style="font-size:10px;color:#64748b;margin-bottom:8px;">Definición</div>
+          <div style="font-size:10px;color:#10b981;margin-bottom:4px;">● 78.4 kg</div>
+          <div style="font-size:10px;color:#f59e0b;margin-bottom:4px;">▲ 17.2% grasa</div>
+          <div style="font-size:10px;color:#6366f1;margin-bottom:4px;">▲ 64.9 kg musc.</div>
+          <div style="padding:3px 6px;background:#ef444422;border-radius:4px;font-size:10px;color:#ef4444;margin-top:6px;">⚠ Alérgico: Lactosa</div>
+        </div>
+        <!-- Panel derecho con tabs -->
+        <div style="background:#1e293b;border-radius:6px;overflow:hidden;">
+          <div style="display:flex;border-bottom:1px solid #334155;">
+            <div style="padding:6px 10px;background:#6366f1;font-size:10px;color:white;font-weight:600;">🫀 Cuerpo</div>
+            <div style="padding:6px 10px;font-size:10px;color:#475569;">📸</div>
+            <div style="padding:6px 10px;font-size:10px;color:#475569;">💪</div>
+            <div style="padding:6px 10px;font-size:10px;color:#475569;">🥗</div>
+          </div>
+          <div style="padding:8px;">
+            <div style="font-size:10px;color:#94a3b8;margin-bottom:6px;">MAPA CORPORAL — Vista Frontal</div>
+            <div style="display:flex;gap:6px;">
+              <div style="width:40px;height:80px;background:#0f172a;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:18px;">🧍</div>
+              <div style="flex:1;">
+                <div style="font-size:10px;color:#94a3b8;margin-bottom:4px;">Medidas rápidas:</div>
+                <div style="font-size:10px;color:#e2e8f0;">Cintura: <b style="color:#ef4444;">82cm</b> ↓2</div>
+                <div style="font-size:10px;color:#e2e8f0;">Cadera: <b style="color:#10b981;">96cm</b> ↑1</div>
+                <div style="font-size:10px;color:#e2e8f0;">Pecho: <b>102cm</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Panel fijo + Tabs dinámicos</h3>
+      <p>Columna izquierda siempre visible (métricas clave, alerta de alergias). Derecha: tabs con el contenido detallado.</p>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+        <span style="padding:2px 8px;background:#dcfce7;border-radius:4px;font-size:11px;color:#166534;">✓ Métricas siempre visibles</span>
+        <span style="padding:2px 8px;background:#dcfce7;border-radius:4px;font-size:11px;color:#166534;">✓ Alergias siempre alertas</span>
+        <span style="padding:2px 8px;background:#fef9c3;border-radius:4px;font-size:11px;color:#713f12;">~ Menos espacio para tabs</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:16px;">Hacé click en la opción que preferís o decime en el terminal.</p>

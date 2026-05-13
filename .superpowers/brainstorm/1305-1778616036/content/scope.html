@@ -1,0 +1,52 @@
+<h2>Fitness Coach CRM — Scope Map</h2>
+<p class="subtitle">Este rediseño toca dos zonas del sistema. Confirma el scope antes de avanzar.</p>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;">
+
+  <div style="border:2px solid #f59e0b;border-radius:12px;padding:20px;background:#fffbeb;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#d97706;text-transform:uppercase;margin-bottom:8px;">ZONA 1 — ClientsSection.tsx</div>
+    <div style="font-size:18px;font-weight:700;color:#1e293b;margin-bottom:12px;">⚡ Command Center</div>
+    <p style="font-size:13px;color:#475569;margin-bottom:12px;">Vista maestra del coach. Tabla de todos los clientes con:</p>
+    <ul style="font-size:13px;color:#475569;space-y:4px;padding-left:16px;line-height:1.8;">
+      <li>🟢 Semáforo de actividad (Verde/Amarillo/Rojo)</li>
+      <li>📈 Sparklines de peso (últimos 30 días)</li>
+      <li>💳 Estado de suscripción y días restantes</li>
+      <li>🎯 Ciclo actual (Definición/Volumen/Recomp.)</li>
+    </ul>
+    <div style="margin-top:14px;padding:8px 12px;background:#fef3c7;border-radius:8px;font-size:12px;color:#92400e;">
+      Reemplaza la tabla actual de clientes
+    </div>
+  </div>
+
+  <div style="border:2px solid #6366f1;border-radius:12px;padding:20px;background:#eef2ff;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:#4f46e5;text-transform:uppercase;margin-bottom:8px;">ZONA 2 — ClientDetail.tsx</div>
+    <div style="font-size:18px;font-weight:700;color:#1e293b;margin-bottom:12px;">🏋️ Fitness Profile</div>
+    <p style="font-size:13px;color:#475569;margin-bottom:12px;">Perfil completo del atleta. Multi-tab con:</p>
+    <ul style="font-size:13px;color:#475569;padding-left:16px;line-height:1.8;">
+      <li>🫀 Body Mapping SVG (músculo/grasa/medidas)</li>
+      <li>📊 Bio-Perfil + Métricas cronológicas</li>
+      <li>📸 Fotos Check-in + slider Antes/Después</li>
+      <li>✅ Check-in semanal de adherencia</li>
+      <li>💪 Records de Fuerza (PRs)</li>
+      <li>🥗 Rutinas + Plan Nutricional</li>
+    </ul>
+    <div style="margin-top:14px;padding:8px 12px;background:#e0e7ff;border-radius:8px;font-size:12px;color:#3730a3;">
+      Reemplaza el detalle de cliente actual
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:24px;border:1px solid #e2e8f0;border-radius:12px;padding:16px;background:#f8fafc;">
+  <div style="font-size:13px;font-weight:600;color:#1e293b;margin-bottom:8px;">🗄️ Base de datos — Tablas nuevas requeridas</div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;">
+    <span style="padding:4px 10px;background:#dbeafe;border-radius:6px;font-size:12px;color:#1e40af;">fitness_metrics</span>
+    <span style="padding:4px 10px;background:#dbeafe;border-radius:6px;font-size:12px;color:#1e40af;">body_measurements</span>
+    <span style="padding:4px 10px;background:#dbeafe;border-radius:6px;font-size:12px;color:#1e40af;">check_in_photos</span>
+    <span style="padding:4px 10px;background:#dbeafe;border-radius:6px;font-size:12px;color:#1e40af;">weekly_checkins</span>
+    <span style="padding:4px 10px;background:#dbeafe;border-radius:6px;font-size:12px;color:#1e40af;">strength_records</span>
+    <span style="padding:4px 10px;background:#dbeafe;border-radius:6px;font-size:12px;color:#1e40af;">workout_plans</span>
+    <span style="padding:4px 10px;background:#dbeafe;border-radius:6px;font-size:12px;color:#1e40af;">nutrition_plans</span>
+    <span style="padding:4px 10px;background:#dbeafe;border-radius:6px;font-size:12px;color:#1e40af;">client_subscriptions</span>
+  </div>
+</div>

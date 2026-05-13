@@ -1,0 +1,179 @@
+<h2>Diseño — Sección 2: Shell + Panel Izquierdo + Tab Métricas</h2>
+<p class="subtitle">Mockup del layout completo con la primera tab activa.</p>
+
+<div style="margin-top:16px;background:#f1f5f9;border-radius:12px;padding:12px;">
+
+  <!-- TOP BAR -->
+  <div style="background:#0f172a;border-radius:8px 8px 0 0;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="color:#64748b;font-size:12px;cursor:pointer;">← Clientes</div>
+      <div style="color:#64748b;font-size:12px;">/</div>
+      <div style="color:#e2e8f0;font-size:13px;font-weight:600;">Juan Domínguez</div>
+      <div style="padding:2px 8px;background:#10b98122;border:1px solid #10b981;border-radius:20px;font-size:10px;color:#10b981;">● Activo</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <div style="padding:5px 12px;background:#1e293b;border-radius:6px;font-size:11px;color:#94a3b8;cursor:pointer;">Guardar</div>
+      <div style="padding:5px 12px;background:#ef444422;border-radius:6px;font-size:11px;color:#ef4444;cursor:pointer;">Eliminar</div>
+    </div>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div style="display:grid;grid-template-columns:200px 1fr;gap:2px;">
+
+    <!-- LEFT PANEL -->
+    <div style="background:#1e293b;border-radius:0 0 0 8px;padding:14px;">
+      <!-- Avatar -->
+      <div style="text-align:center;margin-bottom:12px;">
+        <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:18px;margin:0 auto 6px;">JD</div>
+        <div style="color:white;font-weight:700;font-size:13px;">Juan Domínguez</div>
+        <div style="font-size:10px;color:#64748b;">Cliente desde Mar 2025</div>
+      </div>
+
+      <!-- ALERGY ALERT -->
+      <div style="background:#ef444418;border:1px solid #ef4444;border-radius:6px;padding:7px 9px;margin-bottom:10px;">
+        <div style="font-size:10px;font-weight:700;color:#ef4444;margin-bottom:2px;">⚠ ALERGIAS / INTOL.</div>
+        <div style="font-size:10px;color:#fca5a5;">Lactosa · Gluten</div>
+      </div>
+
+      <!-- Ciclo -->
+      <div style="background:#0f172a;border-radius:6px;padding:8px 10px;margin-bottom:6px;">
+        <div style="font-size:9px;color:#64748b;margin-bottom:3px;letter-spacing:.05em;">CICLO ACTUAL</div>
+        <div style="font-size:12px;font-weight:700;color:#f59e0b;">🔥 Definición</div>
+      </div>
+
+      <!-- Métricas clave -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;">
+        <div style="background:#0f172a;border-radius:5px;padding:6px;text-align:center;">
+          <div style="font-size:15px;font-weight:700;color:#f59e0b;">78.4</div>
+          <div style="font-size:9px;color:#64748b;">kg</div>
+        </div>
+        <div style="background:#0f172a;border-radius:5px;padding:6px;text-align:center;">
+          <div style="font-size:15px;font-weight:700;color:#10b981;">17.2%</div>
+          <div style="font-size:9px;color:#64748b;">grasa</div>
+        </div>
+        <div style="background:#0f172a;border-radius:5px;padding:6px;text-align:center;">
+          <div style="font-size:15px;font-weight:700;color:#6366f1;">64.9</div>
+          <div style="font-size:9px;color:#64748b;">musc. kg</div>
+        </div>
+        <div style="background:#0f172a;border-radius:5px;padding:6px;text-align:center;">
+          <div style="font-size:15px;font-weight:700;color:#94a3b8;">23.1</div>
+          <div style="font-size:9px;color:#64748b;">IMC</div>
+        </div>
+      </div>
+
+      <!-- Macros -->
+      <div style="background:#0f172a;border-radius:6px;padding:8px 10px;margin-bottom:6px;">
+        <div style="font-size:9px;color:#64748b;margin-bottom:3px;">OBJETIVO DIARIO</div>
+        <div style="font-size:13px;font-weight:700;color:white;">2.400 kcal</div>
+        <div style="display:flex;gap:4px;margin-top:4px;">
+          <span style="font-size:9px;padding:2px 5px;background:#6366f122;color:#818cf8;border-radius:3px;">P 180g</span>
+          <span style="font-size:9px;padding:2px 5px;background:#f59e0b22;color:#fbbf24;border-radius:3px;">C 240g</span>
+          <span style="font-size:9px;padding:2px 5px;background:#10b98122;color:#34d399;border-radius:3px;">G 67g</span>
+        </div>
+      </div>
+
+      <!-- Suscripción -->
+      <div style="background:#0f172a;border-radius:6px;padding:8px 10px;margin-bottom:10px;">
+        <div style="font-size:9px;color:#64748b;margin-bottom:3px;">SUSCRIPCIÓN</div>
+        <div style="font-size:11px;color:#10b981;">✓ 12 días restantes</div>
+        <div style="width:100%;height:3px;background:#1e293b;border-radius:2px;margin-top:4px;">
+          <div style="width:40%;height:3px;background:#10b981;border-radius:2px;"></div>
+        </div>
+        <div style="font-size:9px;color:#475569;margin-top:2px;">Vence 24 May 2026</div>
+      </div>
+
+      <!-- Contacto colapsable -->
+      <div style="border-top:1px solid #334155;padding-top:8px;">
+        <div style="font-size:10px;color:#475569;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+          <span>▸ Info de contacto</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT CONTENT -->
+    <div style="background:#0f172a;border-radius:0 0 8px 0;">
+      <!-- Tabs -->
+      <div style="display:flex;border-bottom:1px solid #1e293b;padding:0 16px;">
+        <div style="padding:10px 14px;border-bottom:2px solid #6366f1;font-size:12px;color:#6366f1;font-weight:600;cursor:pointer;">📊 Métricas</div>
+        <div style="padding:10px 14px;font-size:12px;color:#475569;cursor:pointer;">🫀 Cuerpo</div>
+        <div style="padding:10px 14px;font-size:12px;color:#475569;cursor:pointer;">📸 Check-ins</div>
+        <div style="padding:10px 14px;font-size:12px;color:#475569;cursor:pointer;">💪 Entrenamiento</div>
+        <div style="padding:10px 14px;font-size:12px;color:#475569;cursor:pointer;">🥗 Nutrición</div>
+      </div>
+
+      <!-- MÉTRICAS TAB CONTENT -->
+      <div style="padding:16px;">
+        <!-- Header row -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="font-size:13px;font-weight:600;color:#e2e8f0;">Evolución física</div>
+          <div style="display:flex;gap:6px;">
+            <div style="padding:4px 10px;background:#1e293b;border-radius:6px;font-size:10px;color:#94a3b8;cursor:pointer;">1M</div>
+            <div style="padding:4px 10px;background:#6366f1;border-radius:6px;font-size:10px;color:white;cursor:pointer;">3M</div>
+            <div style="padding:4px 10px;background:#1e293b;border-radius:6px;font-size:10px;color:#94a3b8;cursor:pointer;">6M</div>
+            <div style="padding:4px 10px;background:#1e293b;border-radius:6px;font-size:10px;color:#94a3b8;cursor:pointer;">1A</div>
+          </div>
+        </div>
+
+        <!-- Chart placeholder -->
+        <div style="background:#1e293b;border-radius:8px;height:90px;display:flex;align-items:flex-end;padding:12px 16px;gap:1px;margin-bottom:14px;position:relative;">
+          <div style="position:absolute;top:8px;left:12px;font-size:9px;color:#475569;">Peso (kg)</div>
+          <!-- Simulated line chart bars -->
+          <div style="flex:1;display:flex;align-items:flex-end;gap:2px;height:60px;">
+            <div style="flex:1;background:#6366f144;border-radius:2px 2px 0 0;" style="height:80%"></div>
+            <div style="flex:1;background:#6366f144;border-radius:2px 2px 0 0;height:75%;"></div>
+            <div style="flex:1;background:#6366f144;border-radius:2px 2px 0 0;height:82%;"></div>
+            <div style="flex:1;background:#6366f144;border-radius:2px 2px 0 0;height:70%;"></div>
+            <div style="flex:1;background:#6366f144;border-radius:2px 2px 0 0;height:68%;"></div>
+            <div style="flex:1;background:#6366f144;border-radius:2px 2px 0 0;height:72%;"></div>
+            <div style="flex:1;background:#6366f144;border-radius:2px 2px 0 0;height:65%;"></div>
+            <div style="flex:1;background:#6366f155;border-radius:2px 2px 0 0;height:60%;"></div>
+            <div style="flex:1;background:#6366f166;border-radius:2px 2px 0 0;height:58%;"></div>
+            <div style="flex:1;background:#6366f188;border-radius:2px 2px 0 0;height:55%;"></div>
+            <div style="flex:1;background:#6366f1;border-radius:2px 2px 0 0;height:52%;"></div>
+          </div>
+        </div>
+
+        <!-- History table -->
+        <div style="background:#1e293b;border-radius:8px;overflow:hidden;margin-bottom:12px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;padding:7px 12px;border-bottom:1px solid #334155;">
+            <div style="font-size:10px;color:#64748b;">FECHA</div>
+            <div style="font-size:10px;color:#64748b;">PESO</div>
+            <div style="font-size:10px;color:#64748b;">% GRASA</div>
+            <div style="font-size:10px;color:#64748b;">MÚSCULO</div>
+            <div style="font-size:10px;color:#64748b;">IMC</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;padding:6px 12px;border-bottom:1px solid #0f172a;">
+            <div style="font-size:11px;color:#e2e8f0;">12 May</div>
+            <div style="font-size:11px;color:#f59e0b;">78.4 kg</div>
+            <div style="font-size:11px;color:#10b981;">17.2% <span style="font-size:9px;color:#10b981;">↓0.4</span></div>
+            <div style="font-size:11px;color:#6366f1;">64.9 kg</div>
+            <div style="font-size:11px;color:#94a3b8;">23.1</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;padding:6px 12px;border-bottom:1px solid #0f172a;opacity:.7;">
+            <div style="font-size:11px;color:#94a3b8;">5 May</div>
+            <div style="font-size:11px;color:#94a3b8;">79.1 kg</div>
+            <div style="font-size:11px;color:#94a3b8;">17.6%</div>
+            <div style="font-size:11px;color:#94a3b8;">64.5 kg</div>
+            <div style="font-size:11px;color:#94a3b8;">23.3</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;padding:6px 12px;opacity:.5;">
+            <div style="font-size:11px;color:#94a3b8;">28 Abr</div>
+            <div style="font-size:11px;color:#94a3b8;">79.8 kg</div>
+            <div style="font-size:11px;color:#94a3b8;">18.1%</div>
+            <div style="font-size:11px;color:#94a3b8;">64.0 kg</div>
+            <div style="font-size:11px;color:#94a3b8;">23.5</div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;">
+          <div style="padding:6px 14px;background:#6366f1;border-radius:6px;font-size:11px;color:white;cursor:pointer;">+ Registrar medición</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div style="margin-top:16px;padding:12px 16px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;font-size:13px;color:#166534;">
+  ✅ <strong>Sección 2 de 3.</strong> Shell + panel izquierdo + tab Métricas. ¿Aprobás para continuar con las tabs restantes?
+</div>
