@@ -10,6 +10,14 @@ import { BODY_ZONES } from '@/types/fitness';
 import type { BodyMeasurement } from '@/types/fitness';
 import { format, parseISO } from 'date-fns';
 
+const T = {
+  bg: '#0a0b0d', surface: '#111215', surface2: '#16181c', surface3: '#1c1f24',
+  border: '#23262d', borderStrong: '#2e323a',
+  text: '#f3f4f6', text2: '#b6b9c2', text3: '#7a7e88', text4: '#50545d',
+  accent: '#c8ff3d', accentInk: '#0a0b0d', accentDim: 'rgba(200,255,61,0.12)', accentLine: 'rgba(200,255,61,0.35)',
+  danger: '#ff5d5d', warning: '#ffb547', info: '#6ea8ff', good: '#51e2a8',
+};
+
 type Layer = 'muscle' | 'fat' | 'measurements';
 type View = 'front' | 'back';
 
@@ -45,137 +53,258 @@ export function BodyMappingTab({ clientId }: Props) {
     setForm({ date: '' });
   };
 
+  const layerLabels: Record<Layer, string> = { measurements: 'Medidas', fat: 'Grasa', muscle: 'Músculo' };
+  const layerOrder: Layer[] = ['measurements', 'fat', 'muscle'];
+
+  const segStyle = (active: boolean): React.CSSProperties => ({
+    padding: '6px 12px',
+    fontSize: 12,
+    fontFamily: "'JetBrains Mono', monospace",
+    background: active ? T.surface3 : 'transparent',
+    color: active ? T.text : T.text3,
+    border: 'none',
+    borderRadius: 7,
+    cursor: 'pointer',
+    transition: 'background 0.15s, color 0.15s',
+    lineHeight: 1,
+  });
+
+  const segWrap: React.CSSProperties = {
+    display: 'inline-flex',
+    background: T.surface2,
+    border: `1px solid ${T.border}`,
+    borderRadius: 9,
+    padding: 3,
+    gap: 2,
+  };
+
   return (
-    <div className="p-5 flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div className="flex gap-1.5">
-          {(['muscle','fat','measurements'] as Layer[]).map(l => (
-            <button key={l} onClick={() => setLayer(l)}
-              className="px-2.5 py-1 rounded text-xs font-medium transition-colors capitalize"
-              style={layer === l ? { background: '#6366f1', color: 'white' } : { background: '#1e293b', color: '#64748b' }}>
-              {l === 'muscle' ? 'Músculo' : l === 'fat' ? 'Grasa' : 'Medidas'}
-            </button>
-          ))}
+    <div style={{ padding: '24px 28px', background: T.bg, minHeight: '100%' }}>
+      {/* Page header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div>
+          <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 28, fontWeight: 400, color: T.text, margin: 0, lineHeight: 1.1 }}>
+            Composición corporal
+          </h2>
+          <p style={{ fontSize: 13, color: T.text3, margin: '4px 0 0' }}>
+            Medidas perimetrales · última toma{' '}
+            {current ? format(parseISO(current.date), 'dd MMM yyyy') : '—'}
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex gap-1">
-            {(['front','back'] as View[]).map(v => (
-              <button key={v} onClick={() => setView(v)}
-                className="px-2.5 py-1 rounded text-xs font-medium transition-colors"
-                style={view === v ? { background: '#334155', color: 'white' } : { background: '#1e293b', color: '#64748b' }}>
-                {v === 'front' ? 'Frontal' : 'Trasero'}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          {/* Layer subtabs */}
+          <div style={segWrap}>
+            {layerOrder.map(l => (
+              <button key={l} onClick={() => setLayer(l)} style={segStyle(layer === l)}>
+                {layerLabels[l]}
               </button>
             ))}
           </div>
-          <Button size="sm" onClick={() => setOpen(true)}
-            className="h-7 text-xs gap-1 bg-indigo-600 hover:bg-indigo-700 text-white">
-            <Plus className="w-3 h-3" /> Registrar
-          </Button>
+          {/* View seg control */}
+          <div style={segWrap}>
+            <button onClick={() => setView('front')} style={segStyle(view === 'front')}>Frontal</button>
+            {/* Lateral is visual only — no state change */}
+            <button style={segStyle(false)}>Lateral</button>
+            <button onClick={() => setView('back')} style={segStyle(view === 'back')}>Trasera</button>
+          </div>
+          {/* Register button */}
+          <button
+            onClick={() => setOpen(true)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '6px 14px', fontSize: 12,
+              fontFamily: "'JetBrains Mono', monospace",
+              background: T.accent, color: T.accentInk,
+              border: 'none', borderRadius: 9, cursor: 'pointer',
+              fontWeight: 600, lineHeight: 1,
+            }}
+          >
+            <Plus size={13} strokeWidth={2.5} /> Registrar
+          </button>
         </div>
       </div>
 
-      <div className="flex gap-6">
-        {/* SVG */}
-        <div className="flex-shrink-0">
-          {loading ? (
-            <div className="w-[120px] h-[280px] bg-slate-800 rounded-xl animate-pulse" />
-          ) : (
-            <BodySvg current={current} prev={prev} layer={layer} view={view} />
-          )}
-          {/* Legend */}
-          <div className="mt-3 flex flex-col gap-1">
-            <div className="flex items-center gap-1.5 text-[10px] text-red-400">
-              <div className="w-3 h-3 rounded-sm bg-red-500 opacity-80" /> ↓ Grasa/Medida
+      {/* Main card */}
+      <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 14, padding: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 24 }}>
+          {/* Left — body figure */}
+          <div>
+            <div style={{ display: 'grid', placeItems: 'center', padding: 12 }}>
+              {loading ? (
+                <div style={{ width: 120, height: 280, background: T.surface3, borderRadius: 12 }} />
+              ) : (
+                <BodySvg current={current} prev={prev} layer={layer} view={view} />
+              )}
             </div>
-            <div className="flex items-center gap-1.5 text-[10px] text-emerald-400">
-              <div className="w-3 h-3 rounded-sm bg-emerald-500 opacity-80" /> ↑ Músculo/Medida
-            </div>
-            <div className="flex items-center gap-1.5 text-[10px] text-amber-400">
-              <div className="w-3 h-3 rounded-sm bg-amber-500 opacity-80" /> Sin cambio sig.
+            {/* Legend */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, paddingLeft: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, color: T.danger }}>
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: T.danger, flexShrink: 0 }} />
+                ↓ Grasa/Medida
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, color: T.good }}>
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: T.good, flexShrink: 0 }} />
+                ↑ Músculo/Medida
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, color: T.warning }}>
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: T.warning, flexShrink: 0 }} />
+                Sin cambio sig.
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Table */}
-        <div className="flex-1 min-w-0">
-          {current ? (
-            <>
-              <p className="text-xs text-slate-400 mb-2">
-                Medidas al {format(parseISO(current.date), 'dd MMM yyyy')}
-                {prev && <span className="ml-2 text-slate-500">vs {format(parseISO(prev.date), 'dd MMM yyyy')}</span>}
-              </p>
-              <div className="rounded-xl overflow-hidden border border-slate-700">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="bg-slate-800 text-slate-400">
-                      <th className="text-left px-3 py-1.5 font-medium">Zona</th>
-                      <th className="text-right px-3 py-1.5 font-medium">Actual</th>
-                      <th className="text-right px-3 py-1.5 font-medium">Ant.</th>
-                      <th className="text-right px-3 py-1.5 font-medium">Δ</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {BODY_ZONES.map(z => {
-                      const c = current[z.key as keyof BodyMeasurement] as number | null;
-                      const p = prev ? prev[z.key as keyof BodyMeasurement] as number | null : null;
-                      const d = c != null && p != null ? c - p : null;
-                      return (
-                        <tr key={z.key} className="border-t border-slate-800 hover:bg-slate-800/40">
-                          <td className="px-3 py-1.5 text-slate-300">{z.label}</td>
-                          <td className="px-3 py-1.5 text-right text-white font-medium">{c != null ? `${c} cm` : '—'}</td>
-                          <td className="px-3 py-1.5 text-right text-slate-500">{p != null ? `${p} cm` : '—'}</td>
-                          <td className="px-3 py-1.5 text-right">
-                            {d != null ? (
-                              <span className={Math.abs(d) < 0.5 ? 'text-slate-500' : d > 0 ? 'text-emerald-400' : 'text-red-400'}>
-                                {d > 0 ? '+' : ''}{d.toFixed(1)}
-                              </span>
-                            ) : '—'}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+          {/* Right — measurements list */}
+          <div>
+            {/* Row header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
+              <div>
+                <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>Medidas perimetrales</span>
+                <span style={{ fontSize: 12, color: T.text3, marginLeft: 8 }}>cm · cambio vs sesión anterior</span>
               </div>
-            </>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center py-16">
-              <p className="text-slate-500 text-sm">Sin medidas registradas.</p>
-              <Button size="sm" onClick={() => setOpen(true)} className="mt-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs">
-                + Registrar primeras medidas
-              </Button>
+              {current && (
+                <span style={{
+                  background: T.accentDim, color: T.accent,
+                  border: `1px solid ${T.accentLine}`,
+                  fontSize: 11, fontFamily: "'JetBrains Mono', monospace",
+                  borderRadius: 999, padding: '3px 8px',
+                  marginLeft: 'auto',
+                }}>
+                  {BODY_ZONES.filter(z => current[z.key as keyof BodyMeasurement] != null).length} puntos · {format(parseISO(current.date), 'dd MMM yyyy')}
+                </span>
+              )}
             </div>
-          )}
+
+            {!current ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 0', textAlign: 'center' }}>
+                <p style={{ fontSize: 13, color: T.text3, margin: '0 0 16px' }}>Sin medidas registradas.</p>
+                <button
+                  onClick={() => setOpen(true)}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    padding: '7px 16px', fontSize: 12,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    background: T.accent, color: T.accentInk,
+                    border: 'none', borderRadius: 9, cursor: 'pointer',
+                    fontWeight: 600,
+                  }}
+                >
+                  <Plus size={13} strokeWidth={2.5} /> Registrar primeras medidas
+                </button>
+              </div>
+            ) : (
+              <div>
+                {BODY_ZONES.map(z => {
+                  const c = current[z.key as keyof BodyMeasurement] as number | null;
+                  const p = prev ? prev[z.key as keyof BodyMeasurement] as number | null : null;
+                  const d = c != null && p != null ? c - p : null;
+                  const barWidth = c != null ? Math.min(100, (c / 120) * 100) : 0;
+
+                  let deltaEl: React.ReactNode = <span style={{ color: T.text3 }}>—</span>;
+                  if (d != null) {
+                    if (Math.abs(d) < 0.5) {
+                      deltaEl = <span style={{ color: T.text3, fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>—</span>;
+                    } else if (d > 0) {
+                      deltaEl = <span style={{ color: T.good, fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>▴ {d.toFixed(1)}</span>;
+                    } else {
+                      deltaEl = <span style={{ color: T.danger, fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>▾ {Math.abs(d).toFixed(1)}</span>;
+                    }
+                  }
+
+                  return (
+                    <div
+                      key={z.key}
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '140px 1fr 80px 60px',
+                        gap: 10,
+                        alignItems: 'center',
+                        padding: '12px 14px',
+                        background: T.surface2,
+                        border: `1px solid ${T.border}`,
+                        borderRadius: 10,
+                        marginBottom: 8,
+                      }}
+                    >
+                      <span style={{ fontSize: 13, color: T.text }}>{z.label}</span>
+                      <div style={{ height: 6, background: T.surface3, borderRadius: 3, overflow: 'hidden' }}>
+                        <i style={{
+                          display: 'block', height: '100%',
+                          width: `${barWidth}%`,
+                          background: 'linear-gradient(90deg, #c8ff3d, #9eff3d)',
+                          borderRadius: 3,
+                        }} />
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        {c != null ? (
+                          <>
+                            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: T.text }}>{c}</span>
+                            <span style={{ fontSize: 11, color: T.text3, marginLeft: 2 }}>cm</span>
+                          </>
+                        ) : (
+                          <span style={{ color: T.text4, fontSize: 13 }}>—</span>
+                        )}
+                      </div>
+                      <div style={{ textAlign: 'right' }}>{deltaEl}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md bg-slate-900 border-slate-700 text-white">
+        <DialogContent style={{ background: T.surface, border: `1px solid ${T.borderStrong}`, color: T.text, maxWidth: 440 }}>
           <DialogHeader>
-            <DialogTitle className="text-white">Registrar medidas corporales</DialogTitle>
+            <DialogTitle style={{ color: T.text }}>Registrar medidas corporales</DialogTitle>
           </DialogHeader>
-          <div className="py-2">
-            <div className="mb-3 space-y-1">
-              <Label className="text-xs text-slate-400">Fecha *</Label>
-              <Input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))}
-                className="bg-slate-800 border-slate-600 text-white h-8 text-sm" />
+          <div style={{ paddingTop: 8, paddingBottom: 8 }}>
+            <div style={{ marginBottom: 12 }}>
+              <Label style={{ fontSize: 10, textTransform: 'uppercase', color: T.text3, letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>
+                Fecha *
+              </Label>
+              <Input
+                type="date"
+                value={form.date}
+                onChange={e => setForm(p => ({ ...p, date: e.target.value }))}
+                style={{ background: T.surface2, border: `1px solid ${T.border}`, color: T.text, height: 28, fontSize: 13, borderRadius: 8 }}
+              />
             </div>
-            <div className="grid grid-cols-2 gap-2.5">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {BODY_ZONES.map(z => (
-                <div key={z.key} className="space-y-1">
-                  <Label className="text-[10px] text-slate-400">{z.label} (cm)</Label>
-                  <Input type="number" step="0.1" placeholder="0.0"
+                <div key={z.key}>
+                  <Label style={{ fontSize: 10, textTransform: 'uppercase', color: T.text3, letterSpacing: '0.06em', display: 'block', marginBottom: 4 }}>
+                    {z.label} (cm)
+                  </Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    placeholder="0.0"
                     value={form[z.key] ?? ''}
                     onChange={e => setForm(p => ({ ...p, [z.key]: e.target.value }))}
-                    className="bg-slate-800 border-slate-600 text-white h-7 text-sm" />
+                    style={{ background: T.surface2, border: `1px solid ${T.border}`, color: T.text, height: 28, fontSize: 13, borderRadius: 8 }}
+                  />
                 </div>
               ))}
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)} className="border-slate-600 text-slate-300">Cancelar</Button>
-            <Button onClick={handleSave} disabled={!form.date} className="bg-indigo-600 hover:bg-indigo-700 text-white">Guardar</Button>
+            <Button
+              variant="ghost"
+              onClick={() => setOpen(false)}
+              style={{ color: T.text3, border: `1px solid ${T.border}` }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={!form.date}
+              style={{ background: T.accent, color: T.accentInk, border: 'none', fontWeight: 600 }}
+            >
+              Guardar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
