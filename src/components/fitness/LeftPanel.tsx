@@ -4,6 +4,8 @@ import { Textarea } from '@/components/ui/textarea';
 import type { CrmClient } from '@/types/crm';
 import type { ClientFitnessProfile, GoalCycle } from '@/types/fitness';
 import { format, differenceInDays, parseISO } from 'date-fns';
+import { useMetrics } from '@/hooks/fitness/useMetrics';
+import { useNutrition } from '@/hooks/fitness/useNutrition';
 
 const T = {
   bg: '#0a0b0d',
@@ -71,21 +73,40 @@ export function LeftPanel({ client, profile, onSaveProfile }: Props) {
   const displayName = client.business_name || `${client.first_name} ${client.last_name}`.trim();
   const initials = getInitials(displayName);
 
+  // Live data from other tabs
+  const { metrics } = useMetrics(client.id);
+  const { plan: nutritionPlan } = useNutrition(client.id);
+
+  const latest  = metrics[0] ?? null;
+  const prev    = metrics[1] ?? null;
+
   const daysLeft = profile?.subscription_end
     ? differenceInDays(parseISO(profile.subscription_end), new Date())
     : null;
 
   const subColor = daysLeft === null ? T.text3 : daysLeft <= 3 ? T.danger : daysLeft <= 7 ? T.warning : T.good;
-  const subPct = daysLeft === null ? 0 : Math.min(100, Math.max(0, (daysLeft / 30) * 100));
 
   const statusDotColor = client.status === 'active' ? T.good : client.status === 'paused' ? T.warning : T.text3;
 
   const goalCycle: GoalCycle = profile?.goal_cycle ?? 'definition';
 
-  // Macro bar widths
-  const proteinPct = profile?.protein_g ? Math.min(100, (profile.protein_g / 200) * 100) : 0;
-  const carbsPct = profile?.carbs_g ? Math.min(100, (profile.carbs_g / 300) * 100) : 0;
-  const fatPct = profile?.fat_g ? Math.min(100, (profile.fat_g / 100) * 100) : 0;
+  // Macro data from active nutrition plan
+  const kcal    = nutritionPlan?.kcal_target ?? null;
+  const protein = nutritionPlan?.protein_g   ?? null;
+  const carbs   = nutritionPlan?.carbs_g     ?? null;
+  const fat     = nutritionPlan?.fat_g       ?? null;
+  const macroMax = { protein: 200, carbs: 300, fat: 100 };
+
+  function delta(curr: number | null, old: number | null) {
+    if (curr == null || old == null) return null;
+    return curr - old;
+  }
+  function deltaEl(d: number | null, unit: string) {
+    if (d == null) return <span style={{ fontSize: 10, color: T.text4 }}>—</span>;
+    if (Math.abs(d) < 0.05) return <span style={{ fontSize: 10, color: T.text4 }}>—</span>;
+    const color = d < 0 ? T.good : T.danger;
+    return <span style={{ fontSize: 10, fontFamily: "'JetBrains Mono', monospace", color }}>{d > 0 ? '▴' : '▾'} {Math.abs(d).toFixed(1)}{unit}</span>;
+  }
 
   const inputStyle: React.CSSProperties = {
     background: T.surface2,
@@ -147,13 +168,13 @@ export function LeftPanel({ client, profile, onSaveProfile }: Props) {
 
       {/* ── Métricas clave ── */}
       <Section>
-        <SectionHeader label="Métricas clave" micro="7d" />
+        <SectionHeader label="Métricas clave" micro={latest ? format(parseISO(latest.date), 'dd MMM') : undefined} />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {[
-            { lbl: 'Peso', val: '—', delta: '—', unit: 'kg' },
-            { lbl: '% Grasa', val: '—', delta: '—', unit: '%' },
-            { lbl: 'Músculo', val: '—', delta: '—', unit: 'kg' },
-            { lbl: 'IMC', val: '—', delta: '—', unit: '' },
+            { lbl: 'Peso',     val: latest?.weight_kg,      prevVal: prev?.weight_kg,      unit: 'kg', dec: 1 },
+            { lbl: '% Grasa',  val: latest?.body_fat_pct,   prevVal: prev?.body_fat_pct,   unit: '%',  dec: 1 },
+            { lbl: 'Músculo',  val: latest?.muscle_mass_kg, prevVal: prev?.muscle_mass_kg, unit: 'kg', dec: 1 },
+            { lbl: 'IMC',      val: latest?.bmi,            prevVal: prev?.bmi,            unit: '',   dec: 1 },
           ].map(m => (
             <div key={m.lbl} style={{
               background: T.surface2, border: `1px solid ${T.border}`,
@@ -163,10 +184,11 @@ export function LeftPanel({ client, profile, onSaveProfile }: Props) {
                 {m.lbl}
               </div>
               <div style={{ fontSize: 18, fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, color: T.text, lineHeight: 1 }}>
-                {m.val}
+                {m.val != null ? m.val.toFixed(m.dec) : '—'}
+                {m.val != null && m.unit && <span style={{ fontSize: 11, color: T.text3, marginLeft: 3 }}>{m.unit}</span>}
               </div>
-              <div style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: T.text4, marginTop: 4 }}>
-                {m.delta}
+              <div style={{ marginTop: 4 }}>
+                {deltaEl(delta(m.val ?? null, m.prevVal ?? null), m.unit)}
               </div>
             </div>
           ))}
@@ -213,35 +235,43 @@ export function LeftPanel({ client, profile, onSaveProfile }: Props) {
 
       {/* ── Objetivo diario ── */}
       <Section>
-        <SectionHeader label="Objetivo diario" micro={`${profile?.kcal_target ?? '—'} kcal`} />
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 14 }}>
-          <span style={{ fontSize: 22, fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: T.text }}>
-            {profile?.kcal_target ?? '—'}
-          </span>
-          <span style={{ fontSize: 13, color: T.text3 }}>kcal</span>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
-          {[
-            { label: 'Proteína', value: profile?.protein_g ? `${profile.protein_g}g` : '—', pct: proteinPct, color: '#a78bff' },
-            { label: 'Carbs', value: profile?.carbs_g ? `${profile.carbs_g}g` : '—', pct: carbsPct, color: T.warning },
-            { label: 'Grasa', value: profile?.fat_g ? `${profile.fat_g}g` : '—', pct: fatPct, color: T.good },
-          ].map(m => (
-            <div key={m.label} style={{
-              background: T.surface2, border: `1px solid ${T.border}`,
-              borderRadius: 10, padding: 10,
-            }}>
-              <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: T.text3, marginBottom: 4 }}>
-                {m.label}
-              </div>
-              <div style={{ fontSize: 14, fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, color: T.text, marginBottom: 6 }}>
-                {m.value}
-              </div>
-              <div style={{ height: 3, borderRadius: 2, background: T.surface3 }}>
-                <div style={{ height: 3, borderRadius: 2, width: `${m.pct}%`, background: m.color, transition: 'width 0.3s' }} />
-              </div>
+        <SectionHeader label="Objetivo diario" micro={kcal ? `${kcal.toLocaleString()} kcal` : undefined} />
+        {kcal == null ? (
+          <div style={{ fontSize: 12, color: T.text4 }}>
+            Sin plan activo. Configurá los macros en la pestaña Nutrición.
+          </div>
+        ) : (
+          <>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 14 }}>
+              <span style={{ fontSize: 22, fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: T.text }}>
+                {kcal.toLocaleString()}
+              </span>
+              <span style={{ fontSize: 13, color: T.text3 }}>kcal</span>
             </div>
-          ))}
-        </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
+              {[
+                { label: 'Proteína', value: protein, max: macroMax.protein, color: '#a78bff' },
+                { label: 'Carbs',    value: carbs,   max: macroMax.carbs,   color: T.warning },
+                { label: 'Grasa',    value: fat,     max: macroMax.fat,     color: T.good },
+              ].map(m => (
+                <div key={m.label} style={{
+                  background: T.surface2, border: `1px solid ${T.border}`,
+                  borderRadius: 10, padding: 10,
+                }}>
+                  <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: T.text3, marginBottom: 4 }}>
+                    {m.label}
+                  </div>
+                  <div style={{ fontSize: 14, fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, color: T.text, marginBottom: 6 }}>
+                    {m.value != null ? `${m.value}g` : '—'}
+                  </div>
+                  <div style={{ height: 3, borderRadius: 2, background: T.surface3 }}>
+                    <div style={{ height: 3, borderRadius: 2, width: `${m.value ? Math.min(100, (m.value / m.max) * 100) : 0}%`, background: m.color, transition: 'width 0.3s' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </Section>
 
       {/* ── Suscripción ── */}
@@ -270,32 +300,34 @@ export function LeftPanel({ client, profile, onSaveProfile }: Props) {
       <Section>
         <SectionHeader label="Config. perfil" />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <input
-            type="number"
-            placeholder="Kcal objetivo"
-            defaultValue={profile?.kcal_target ?? ''}
-            style={inputStyle}
-            onBlur={e => { const v = parseInt(e.target.value); if (!isNaN(v)) onSaveProfile({ kcal_target: v }); }}
-          />
-          <input
-            type="date"
-            placeholder="Fin suscripción"
-            defaultValue={profile?.subscription_end ?? ''}
-            style={inputStyle}
-            onBlur={e => { if (e.target.value) onSaveProfile({ subscription_end: e.target.value }); }}
-          />
-          <Textarea
-            placeholder="Alergias / intolerancias..."
-            defaultValue={profile?.allergies ?? ''}
-            style={{
-              background: T.surface2, border: `1px solid ${T.border}`,
-              borderRadius: 8, color: T.text, fontSize: 12,
-              padding: '8px 10px', resize: 'none', fontFamily: 'inherit',
-              outline: 'none',
-            }}
-            rows={2}
-            onBlur={e => onSaveProfile({ allergies: e.target.value || null })}
-          />
+          <div>
+            <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: T.text3, marginBottom: 4 }}>
+              Fin suscripción
+            </div>
+            <input
+              type="date"
+              defaultValue={profile?.subscription_end ?? ''}
+              style={inputStyle}
+              onBlur={e => { if (e.target.value) onSaveProfile({ subscription_end: e.target.value }); }}
+            />
+          </div>
+          <div>
+            <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em', color: T.text3, marginBottom: 4 }}>
+              Lesiones / limitaciones
+            </div>
+            <Textarea
+              placeholder="Ej: Rodilla derecha, lumbar..."
+              defaultValue={profile?.injuries ?? ''}
+              style={{
+                background: T.surface2, border: `1px solid ${T.border}`,
+                borderRadius: 8, color: T.text, fontSize: 12,
+                padding: '8px 10px', resize: 'none', fontFamily: 'inherit',
+                outline: 'none',
+              }}
+              rows={2}
+              onBlur={e => onSaveProfile({ injuries: e.target.value || null })}
+            />
+          </div>
         </div>
       </Section>
 

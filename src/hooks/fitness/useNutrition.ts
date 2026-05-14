@@ -87,5 +87,15 @@ export function useNutrition(clientId: string) {
     fetch();
   };
 
-  return { plan, meals, loading, refetch: fetch, createPlan, addMeal, deleteMeal, addItem, updateItem, deleteItem, updatePlanPdfUrl };
+  const updatePlanMacros = async (planId: string, kcal: number, protein: number, carbs: number, fat: number) => {
+    const { error } = await supabase
+      .from('nutrition_plans')
+      .update({ kcal_target: kcal, protein_g: protein, carbs_g: carbs, fat_g: fat })
+      .eq('id', planId);
+    if (error) { toast.error('No se pudo actualizar los macros.'); return; }
+    toast.success('Macros actualizados.');
+    fetch();
+  };
+
+  return { plan, meals, loading, refetch: fetch, createPlan, addMeal, deleteMeal, addItem, updateItem, deleteItem, updatePlanPdfUrl, updatePlanMacros };
 }
