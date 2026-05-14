@@ -72,6 +72,16 @@ export interface CheckInPhoto {
   photo_url: string;
   storage_path: string | null;
   label: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface CheckInFolder {
+  id: string;
+  client_id: string;
+  user_id: string;
+  folder_date: string;
+  notes: string | null;
   created_at: string;
 }
 
@@ -106,6 +116,7 @@ export interface WorkoutPlan {
   user_id: string;
   name: string;
   active: boolean;
+  google_sheet_url: string | null;
   created_at: string;
 }
 
@@ -134,6 +145,7 @@ export interface NutritionPlan {
   fat_g: number;
   active: boolean;
   created_at: string;
+  pdf_url: string | null;
 }
 
 export interface NutritionMeal {

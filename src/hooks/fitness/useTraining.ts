@@ -46,10 +46,16 @@ export function useTraining(clientId: string) {
     fetch();
   };
 
-  const createPlan = async (name: string) => {
+  const createPlan = async (name: string, googleSheetUrl?: string) => {
     if (!userId) return;
     await supabase.from('workout_plans').update({ active: false }).eq('client_id', clientId);
-    const { error } = await supabase.from('workout_plans').insert({ client_id: clientId, user_id: userId, name, active: true });
+    const { error } = await supabase.from('workout_plans').insert({
+      client_id: clientId,
+      user_id: userId,
+      name,
+      active: true,
+      google_sheet_url: googleSheetUrl ?? null,
+    });
     if (error) { toast.error('No se pudo crear el plan.'); return; }
     toast.success('Plan creado.');
     fetch();
@@ -72,8 +78,18 @@ export function useTraining(clientId: string) {
     fetch();
   };
 
+  const updatePlanSheetUrl = async (planId: string, url: string | null) => {
+    const { error } = await supabase
+      .from('workout_plans')
+      .update({ google_sheet_url: url })
+      .eq('id', planId);
+    if (error) { toast.error('No se pudo actualizar el link.'); return; }
+    toast.success('Link actualizado.');
+    fetch();
+  };
+
   const activePlan = plans.find(p => p.active) ?? null;
   const days = [...new Set(exercises.map(e => e.day))].sort();
 
-  return { records, plans, exercises, activePlan, days, loading, refetch: fetch, saveRecord, createPlan, saveExercise, updateExercise, deleteExercise };
+  return { records, plans, exercises, activePlan, days, loading, refetch: fetch, saveRecord, createPlan, updatePlanSheetUrl, saveExercise, updateExercise, deleteExercise };
 }

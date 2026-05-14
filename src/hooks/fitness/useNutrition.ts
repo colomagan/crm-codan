@@ -37,12 +37,13 @@ export function useNutrition(clientId: string) {
 
   useEffect(() => { fetch(); }, [fetch]);
 
-  const createPlan = async (name: string, kcal: number, protein: number, carbs: number, fat: number) => {
+  const createPlan = async (name: string, kcal: number, protein: number, carbs: number, fat: number, pdfUrl?: string) => {
     if (!userId) return;
     await supabase.from('nutrition_plans').update({ active: false }).eq('client_id', clientId);
     const { error } = await supabase.from('nutrition_plans').insert({
       client_id: clientId, user_id: userId, name,
       kcal_target: kcal, protein_g: protein, carbs_g: carbs, fat_g: fat, active: true,
+      ...(pdfUrl ? { pdf_url: pdfUrl } : {}),
     });
     if (error) { toast.error('No se pudo crear el plan.'); return; }
     toast.success('Plan nutricional creado.');
@@ -79,5 +80,12 @@ export function useNutrition(clientId: string) {
     fetch();
   };
 
-  return { plan, meals, loading, refetch: fetch, createPlan, addMeal, deleteMeal, addItem, updateItem, deleteItem };
+  const updatePlanPdfUrl = async (planId: string, pdfUrl: string | null) => {
+    const { error } = await supabase.from('nutrition_plans').update({ pdf_url: pdfUrl }).eq('id', planId);
+    if (error) { toast.error('No se pudo guardar el link.'); return; }
+    toast.success('Link guardado.');
+    fetch();
+  };
+
+  return { plan, meals, loading, refetch: fetch, createPlan, addMeal, deleteMeal, addItem, updateItem, deleteItem, updatePlanPdfUrl };
 }

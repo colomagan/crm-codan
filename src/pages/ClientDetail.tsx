@@ -106,7 +106,7 @@ export default function ClientDetail() {
   const statusColor = STATUS_COLORS[client.status];
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: T.bg, fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: T.bg, fontFamily: 'system-ui, sans-serif', overflow: 'hidden' }}>
 
       {/* TOP BAR */}
       <div style={{
@@ -217,7 +217,6 @@ export default function ClientDetail() {
         <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {/* Tab bar */}
           <div style={{
-            position: 'sticky', top: 64, zIndex: 4,
             background: T.bg, borderBottom: `1px solid ${T.border}`,
             display: 'flex', gap: 4, padding: '0 28px', flexShrink: 0,
           }}>

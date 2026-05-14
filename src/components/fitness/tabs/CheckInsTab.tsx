@@ -1,12 +1,12 @@
-import { useState, useRef } from 'react';
-import { Plus, Trash2, Upload, Link, ChevronDown, ChevronRight } from 'lucide-react';
+import { useState, useRef, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useCheckIns } from '@/hooks/fitness/useCheckIns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { format, parseISO, startOfWeek } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
+import type { CheckInPhoto } from '@/types/fitness';
 
 const T = {
   bg: '#0a0b0d', surface: '#111215', surface2: '#16181c', surface3: '#1c1f24',
@@ -18,490 +18,587 @@ const T = {
 
 interface Props { clientId: string; }
 
-function ScoreSlider({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
+function driveToImgUrl(url: string): string {
+  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (match) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+  const ucMatch = url.match(/id=([a-zA-Z0-9_-]+)/);
+  if (ucMatch) return `https://drive.google.com/uc?export=view&id=${ucMatch[1]}`;
+  return url;
+}
+
+function isDriveUrl(url: string) {
+  return url.includes('drive.google.com') || url.includes('docs.google.com');
+}
+
+function toDisplayUrl(url: string): string {
+  return isDriveUrl(url) ? driveToImgUrl(url) : url;
+}
+
+// ── Lightbox ──────────────────────────────────────────────────────────────────
+function Lightbox({ photo, onClose, onSaveNotes }: {
+  photo: CheckInPhoto;
+  onClose: () => void;
+  onSaveNotes: (notes: string) => void;
+}) {
+  const [notes, setNotes] = useState(photo.notes ?? '');
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = () => {
+    onSaveNotes(notes);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1500);
+  };
+
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-        <span style={{ fontSize: 12, color: T.text3 }}>{label}</span>
-        <span style={{ fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: T.accent }}>{value}/10</span>
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 100,
+        background: 'rgba(0,0,0,0.92)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{ display: 'flex', gap: 20, maxWidth: '90vw', maxHeight: '90vh', alignItems: 'flex-start' }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Image */}
+        <div style={{ flex: '0 0 auto', maxHeight: '85vh', borderRadius: 12, overflow: 'hidden', border: `1px solid ${T.borderStrong}` }}>
+          <img
+            src={toDisplayUrl(photo.photo_url)}
+            alt={photo.label ?? 'check-in'}
+            style={{ display: 'block', maxHeight: '85vh', maxWidth: '65vw', objectFit: 'contain' }}
+          />
+        </div>
+
+        {/* Side panel */}
+        <div style={{
+          width: 260, background: T.surface, border: `1px solid ${T.border}`,
+          borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', gap: 14,
+        }}>
+          <div>
+            <p style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.07em', color: T.text3, margin: '0 0 4px' }}>Fecha</p>
+            <p style={{ fontSize: 13, color: T.text, margin: 0 }}>
+              {format(parseISO(photo.folder_date), "d 'de' MMMM yyyy", { locale: es })}
+            </p>
+          </div>
+          {photo.label && (
+            <div>
+              <p style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.07em', color: T.text3, margin: '0 0 4px' }}>Ángulo</p>
+              <p style={{ fontSize: 13, color: T.text, margin: 0, textTransform: 'capitalize' }}>{photo.label}</p>
+            </div>
+          )}
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.07em', color: T.text3, margin: '0 0 6px' }}>Notas</p>
+            <textarea
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="Agregar nota sobre esta imagen..."
+              rows={5}
+              style={{
+                width: '100%', background: T.surface2, border: `1px solid ${T.border}`,
+                borderRadius: 8, color: T.text, fontSize: 12, padding: '8px 10px',
+                resize: 'none', outline: 'none', fontFamily: 'inherit',
+                boxSizing: 'border-box',
+              }}
+            />
+          </div>
+          <button
+            onClick={handleSave}
+            style={{
+              background: saved ? T.good : T.accent, color: T.accentInk,
+              border: 'none', borderRadius: 8, padding: '7px 0', fontSize: 13,
+              fontWeight: 600, cursor: 'pointer', width: '100%', transition: 'background 0.2s',
+            }}
+          >
+            {saved ? 'Guardado ✓' : 'Guardar nota'}
+          </button>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'transparent', border: `1px solid ${T.border}`, color: T.text3,
+              borderRadius: 8, padding: '7px 0', fontSize: 13, cursor: 'pointer', width: '100%',
+            }}
+          >
+            Cerrar
+          </button>
+        </div>
       </div>
-      <input
-        type="range" min="1" max="10" value={value}
-        onChange={e => onChange(parseInt(e.target.value))}
-        style={{ width: '100%', cursor: 'pointer', accentColor: T.accent, height: 2 }}
-      />
     </div>
   );
 }
 
+// ── Photo card ─────────────────────────────────────────────────────────────────
+function PhotoCard({ photo, onClick, onDelete }: {
+  photo: CheckInPhoto;
+  onClick: () => void;
+  onDelete: () => void;
+}) {
+  const [hover, setHover] = useState(false);
+
+  return (
+    <div
+      style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', aspectRatio: '3/4', background: T.surface3, cursor: 'pointer' }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onClick={onClick}
+    >
+      <img
+        src={toDisplayUrl(photo.photo_url)}
+        alt={photo.label ?? 'check-in'}
+        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        onError={e => { (e.target as HTMLImageElement).style.opacity = '0.3'; }}
+      />
+      {/* Overlay */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%)',
+        opacity: hover ? 1 : 0, transition: 'opacity 0.15s',
+        display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: 8,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {photo.label && (
+            <span style={{ fontSize: 9, fontFamily: 'JetBrains Mono, monospace', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)', letterSpacing: '0.05em' }}>
+              {photo.label}
+            </span>
+          )}
+          <button
+            onClick={e => { e.stopPropagation(); onDelete(); }}
+            style={{ background: 'rgba(255,93,93,0.2)', border: '1px solid rgba(255,93,93,0.4)', borderRadius: 6, padding: '3px 6px', cursor: 'pointer', color: T.danger, display: 'flex', alignItems: 'center' }}
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+            </svg>
+          </button>
+        </div>
+        {photo.notes && (
+          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', margin: '4px 0 0', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as any }}>
+            {photo.notes}
+          </p>
+        )}
+      </div>
+      {photo.notes && !hover && (
+        <div style={{ position: 'absolute', top: 6, right: 6, width: 8, height: 8, borderRadius: '50%', background: T.accent }} />
+      )}
+    </div>
+  );
+}
+
+// ── Folder card ────────────────────────────────────────────────────────────────
+function FolderCard({ folderDate, photos, notes, onAddPhoto, onUpdateNotes, onPhotoClick, onDeletePhoto }: {
+  folderDate: string;
+  photos: CheckInPhoto[];
+  notes: string | null;
+  onAddPhoto: () => void;
+  onUpdateNotes: (notes: string) => void;
+  onPhotoClick: (photo: CheckInPhoto) => void;
+  onDeletePhoto: (photo: CheckInPhoto) => void;
+}) {
+  const [collapsed, setCollapsed] = useState(false);
+  const [folderNotes, setFolderNotes] = useState(notes ?? '');
+  const [editingNotes, setEditingNotes] = useState(false);
+
+  const displayDate = format(parseISO(folderDate), "d 'de' MMMM yyyy", { locale: es });
+
+  return (
+    <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 14, overflow: 'hidden' }}>
+      {/* Folder header */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px',
+        borderBottom: collapsed ? 'none' : `1px solid ${T.border}`,
+        background: T.surface2,
+      }}>
+        <button
+          onClick={() => setCollapsed(v => !v)}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: T.text3, display: 'flex', flexShrink: 0 }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            style={{ transform: collapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.15s' }}>
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+
+        {/* Folder icon */}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill={T.accent} stroke="none" style={{ flexShrink: 0 }}>
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+        </svg>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>{displayDate}</span>
+          <span style={{ fontSize: 12, color: T.text4, marginLeft: 10, fontFamily: 'JetBrains Mono, monospace' }}>
+            {photos.length} foto{photos.length !== 1 ? 's' : ''}
+          </span>
+        </div>
+
+        <button
+          onClick={onAddPhoto}
+          style={{
+            background: T.accentDim, border: `1px solid ${T.accentLine}`, color: T.accent,
+            borderRadius: 8, padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0,
+          }}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Agregar foto
+        </button>
+      </div>
+
+      {!collapsed && (
+        <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Folder notes */}
+          <div>
+            {editingNotes ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <textarea
+                  value={folderNotes}
+                  onChange={e => setFolderNotes(e.target.value)}
+                  placeholder="Notas de esta sesión..."
+                  rows={2}
+                  autoFocus
+                  style={{
+                    width: '100%', background: T.surface2, border: `1px solid ${T.border}`,
+                    borderRadius: 8, color: T.text, fontSize: 12, padding: '8px 10px',
+                    resize: 'none', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+                  }}
+                />
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button
+                    onClick={() => { onUpdateNotes(folderNotes); setEditingNotes(false); }}
+                    style={{ background: T.accent, color: T.accentInk, border: 'none', borderRadius: 7, padding: '4px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Guardar
+                  </button>
+                  <button
+                    onClick={() => setEditingNotes(false)}
+                    style={{ background: 'transparent', border: `1px solid ${T.border}`, color: T.text3, borderRadius: 7, padding: '4px 10px', fontSize: 12, cursor: 'pointer' }}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setEditingNotes(true)}
+                style={{
+                  background: 'transparent', border: `1px dashed ${T.border}`, borderRadius: 8,
+                  padding: '8px 12px', width: '100%', textAlign: 'left', cursor: 'pointer',
+                  color: folderNotes ? T.text2 : T.text4, fontSize: 12, fontFamily: 'inherit',
+                }}
+              >
+                {folderNotes || '+ Agregar notas a esta sesión...'}
+              </button>
+            )}
+          </div>
+
+          {/* Photo grid */}
+          {photos.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '24px 0', color: T.text4, fontSize: 13 }}>
+              Sin fotos. Agregá una con el botón de arriba.
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
+              {photos.map(photo => (
+                <PhotoCard
+                  key={photo.id}
+                  photo={photo}
+                  onClick={() => onPhotoClick(photo)}
+                  onDelete={() => onDeletePhoto(photo)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Main tab ───────────────────────────────────────────────────────────────────
 export function CheckInsTab({ clientId }: Props) {
   const { session } = useAuth();
   const userId = session?.user?.id;
-  const { photos, checkins, folders, loading, addPhoto, deletePhoto, saveCheckin } = useCheckIns(clientId);
+  const { photos, folders, loading, getFolderMeta, createFolder, updateFolderNotes, addPhoto, updatePhotoNotes, deletePhoto } = useCheckIns(clientId);
 
-  const [openFolder, setOpenFolder] = useState<string | null>(null);
-  const [photoDialog, setPhotoDialog] = useState(false);
-  const [photoDate, setPhotoDate] = useState('');
-  const [photoUrl, setPhotoUrl] = useState('');
+  // New folder dialog
+  const [folderDialog, setFolderDialog] = useState(false);
+  const [newFolderDate, setNewFolderDate] = useState('');
+
+  // Add photo dialog
+  const [photoDialog, setPhotoDialog] = useState<{ folderDate: string } | null>(null);
+  const [photoTab, setPhotoTab] = useState<'file' | 'drive'>('file');
+  const [driveUrl, setDriveUrl] = useState('');
   const [photoLabel, setPhotoLabel] = useState('');
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [checkinDialog, setCheckinDialog] = useState(false);
-  const [checkinForm, setCheckinForm] = useState({ week_date: '', sleep_score: 7, hunger_score: 6, stress_score: 4, adherence_score: 8, notes: '' });
+  // Lightbox
+  const [lightboxPhoto, setLightboxPhoto] = useState<CheckInPhoto | null>(null);
 
-  const [sliderBefore, setSliderBefore] = useState<string>('');
-  const [sliderAfter, setSliderAfter] = useState<string>('');
-  const [sliderPct, setSliderPct] = useState(50);
-  const [activePhotoTab, setActivePhotoTab] = useState<'last' | 'vs' | 'all'>('last');
-
-  const getFirstPhoto = (folderDate: string) => photos.find(p => p.folder_date === folderDate);
+  const handleCreateFolder = async () => {
+    if (!newFolderDate) return;
+    await createFolder(newFolderDate);
+    setFolderDialog(false);
+    setNewFolderDate('');
+  };
 
   const handleUpload = async (file: File) => {
-    if (!userId) return;
+    if (!userId || !photoDialog) return;
     setUploading(true);
     const path = `${userId}/${clientId}/${Date.now()}_${file.name}`;
     const { error } = await supabase.storage.from('checkin-photos').upload(path, file);
     if (error) { toast.error('Error al subir la foto.'); setUploading(false); return; }
     const { data: { publicUrl } } = supabase.storage.from('checkin-photos').getPublicUrl(path);
-    await addPhoto(photoDate, publicUrl, path, photoLabel || 'front');
-    setPhotoDialog(false);
+    await addPhoto(photoDialog.folderDate, publicUrl, path, photoLabel || undefined);
+    setPhotoDialog(null);
+    setPhotoLabel('');
     setUploading(false);
   };
 
-  const handleAddByUrl = async () => {
-    if (!photoDate || !photoUrl) return;
-    await addPhoto(photoDate, photoUrl, undefined, photoLabel || 'front');
-    setPhotoDialog(false);
-    setPhotoUrl('');
+  const handleAddDriveUrl = async () => {
+    if (!driveUrl.trim() || !photoDialog) return;
+    await addPhoto(photoDialog.folderDate, driveUrl.trim(), undefined, photoLabel || undefined);
+    setPhotoDialog(null);
+    setDriveUrl('');
+    setPhotoLabel('');
   };
 
-  const handleSaveCheckin = async () => {
-    await saveCheckin({
-      week_date: checkinForm.week_date || format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'),
-      sleep_score: checkinForm.sleep_score,
-      hunger_score: checkinForm.hunger_score,
-      stress_score: checkinForm.stress_score,
-      adherence_score: checkinForm.adherence_score,
-      notes: checkinForm.notes || null,
-    });
-    setCheckinDialog(false);
-  };
-
-  const beforePhoto = sliderBefore ? getFirstPhoto(sliderBefore) : null;
-  const afterPhoto = sliderAfter ? getFirstPhoto(sliderAfter) : null;
-
-  // Averages
-  const avg4 = checkins.slice(0, 4);
-  const avgSleep = avg4.length ? avg4.reduce((s, c) => s + c.sleep_score, 0) / avg4.length : 0;
-  const avgHunger = avg4.length ? avg4.reduce((s, c) => s + c.hunger_score, 0) / avg4.length : 0;
-  const avgStress = avg4.length ? avg4.reduce((s, c) => s + c.stress_score, 0) / avg4.length : 0;
-  const avgAdherence = avg4.length ? avg4.reduce((s, c) => s + c.adherence_score, 0) / avg4.length : 0;
-
-  const trendBars = [
-    { label: 'SUEÑO', value: avgSleep, color: T.info },
-    { label: 'ESTRÉS', value: avgStress, color: T.warning },
-    { label: 'HAMBRE', value: avgHunger, color: '#a78bff' },
-    { label: 'ADHERENCIA PLAN', value: avgAdherence, color: T.good },
-  ];
-
-  const card: React.CSSProperties = {
-    background: T.surface,
-    border: `1px solid ${T.border}`,
-    borderRadius: 14,
-    padding: 20,
-  };
+  const handleSavePhotoNotes = useCallback(async (photoId: string, notes: string) => {
+    await updatePhotoNotes(photoId, notes);
+    setLightboxPhoto(prev => prev?.id === photoId ? { ...prev, notes: notes || null } : prev);
+  }, [updatePhotoNotes]);
 
   const inputStyle: React.CSSProperties = {
-    background: T.surface2,
-    border: `1px solid ${T.border}`,
-    color: T.text,
-    height: 32,
-    borderRadius: 8,
-    fontSize: 13,
-    padding: '0 10px',
-    width: '100%',
-    outline: 'none',
+    background: T.surface2, border: `1px solid ${T.border}`,
+    color: T.text, height: 36, borderRadius: 8, fontSize: 13,
+    padding: '0 12px', width: '100%', outline: 'none', boxSizing: 'border-box',
   };
 
   const labelStyle: React.CSSProperties = {
-    fontSize: 11,
-    textTransform: 'uppercase' as const,
-    color: T.text3,
-    letterSpacing: '0.05em',
-    display: 'block',
-    marginBottom: 4,
-    fontFamily: "'JetBrains Mono', monospace",
+    fontSize: 11, textTransform: 'uppercase' as const, letterSpacing: '0.06em',
+    color: T.text3, display: 'block', marginBottom: 5,
   };
 
-  const accentBtn: React.CSSProperties = {
-    background: T.accent,
-    color: T.accentInk,
-    border: 'none',
-    borderRadius: 8,
-    padding: '5px 12px',
-    fontSize: 12,
-    fontWeight: 600,
-    cursor: 'pointer',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 5,
-    fontFamily: 'inherit',
-  };
-
-  const ghostBtn: React.CSSProperties = {
-    background: 'transparent',
-    color: T.text2,
-    border: `1px solid ${T.border}`,
-    borderRadius: 8,
-    padding: '5px 12px',
-    fontSize: 12,
-    cursor: 'pointer',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 5,
-    fontFamily: 'inherit',
-  };
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300, color: T.text3, fontSize: 13 }}>
+        Cargando...
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '24px 28px', background: T.bg, minHeight: '100%' }}>
-      {/* Page header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
-          <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 28, fontWeight: 400, color: T.text, margin: 0, lineHeight: 1.2 }}>
-            Check-ins semanales
+          <h2 style={{ fontFamily: 'Instrument Serif, Georgia, serif', fontSize: 28, fontWeight: 400, color: T.text, margin: 0, lineHeight: 1.2 }}>
+            Check-ins
           </h2>
-          <p style={{ fontSize: 13, color: T.text3, marginTop: 4 }}>Fotos de progreso + cuestionario semanal</p>
+          <p style={{ fontSize: 13, color: T.text3, margin: '4px 0 0' }}>
+            {folders.length} sesión{folders.length !== 1 ? 'es' : ''} · {photos.length} foto{photos.length !== 1 ? 's' : ''}
+          </p>
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <button style={ghostBtn}>Plantilla</button>
-          <button style={accentBtn} onClick={() => setCheckinDialog(true)}>
-            <Plus size={13} /> Nuevo check-in
+        <button
+          onClick={() => { setNewFolderDate(''); setFolderDialog(true); }}
+          style={{
+            background: T.accent, color: T.accentInk, border: 'none',
+            borderRadius: 8, padding: '8px 18px', fontSize: 13, fontWeight: 600,
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7,
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Nueva carpeta
+        </button>
+      </div>
+
+      {/* Empty state */}
+      {folders.length === 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 300, gap: 16 }}>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: T.accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill={T.accent} stroke="none">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+            </svg>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ fontSize: 15, fontWeight: 600, color: T.text, margin: '0 0 6px' }}>Sin check-ins</p>
+            <p style={{ fontSize: 13, color: T.text3, margin: 0 }}>Creá una carpeta para empezar a registrar el progreso.</p>
+          </div>
+          <button
+            onClick={() => { setNewFolderDate(''); setFolderDialog(true); }}
+            style={{ background: T.accent, color: T.accentInk, border: 'none', borderRadius: 8, padding: '8px 20px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+          >
+            Nueva carpeta
           </button>
         </div>
+      )}
+
+      {/* Folders list */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {folders.map(folderDate => {
+          const folderPhotos = photos.filter(p => p.folder_date === folderDate);
+          const meta = getFolderMeta(folderDate);
+          return (
+            <FolderCard
+              key={folderDate}
+              folderDate={folderDate}
+              photos={folderPhotos}
+              notes={meta?.notes ?? null}
+              onAddPhoto={() => { setPhotoLabel(''); setDriveUrl(''); setPhotoTab('file'); setPhotoDialog({ folderDate }); }}
+              onUpdateNotes={notes => updateFolderNotes(folderDate, notes)}
+              onPhotoClick={setLightboxPhoto}
+              onDeletePhoto={photo => deletePhoto(photo.id, photo.storage_path)}
+            />
+          );
+        })}
       </div>
 
-      {/* 2-column grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-
-        {/* LEFT: Photos card */}
-        <div style={card}>
-          {/* Card header */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
-            <div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: T.text, margin: 0 }}>Fotos de progreso</p>
-              <p style={{ fontSize: 12, color: T.text3, marginTop: 2 }}>Ordenadas por fecha</p>
-            </div>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              {/* Subtabs */}
-              <div style={{ display: 'inline-flex', background: T.surface2, border: `1px solid ${T.border}`, borderRadius: 9, padding: 3, gap: 2 }}>
-                {(['last', 'vs', 'all'] as const).map((tab, i) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActivePhotoTab(tab)}
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: 12,
-                      fontFamily: "'JetBrains Mono', monospace",
-                      borderRadius: 6,
-                      border: 'none',
-                      cursor: 'pointer',
-                      background: activePhotoTab === tab ? T.surface3 : 'transparent',
-                      color: activePhotoTab === tab ? T.text : T.text3,
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    {['Última', 'vs S1', 'Todas'][i]}
-                  </button>
-                ))}
-              </div>
-              <button style={accentBtn} onClick={() => setPhotoDialog(true)}>
-                <Plus size={13} /> Agregar foto
-              </button>
-            </div>
+      {/* New folder dialog */}
+      <Dialog open={folderDialog} onOpenChange={setFolderDialog}>
+        <DialogContent style={{ background: T.surface, border: `1px solid ${T.borderStrong}`, color: T.text, maxWidth: 340 }}>
+          <DialogHeader>
+            <DialogTitle style={{ color: T.text }}>Nueva carpeta</DialogTitle>
+          </DialogHeader>
+          <div style={{ padding: '8px 0' }}>
+            <label style={labelStyle}>Fecha del check-in</label>
+            <input
+              type="date"
+              value={newFolderDate}
+              onChange={e => setNewFolderDate(e.target.value)}
+              style={inputStyle}
+              autoFocus
+            />
           </div>
-
-          {/* Folders */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {loading ? (
-              <p style={{ fontSize: 12, color: T.text3 }}>Cargando...</p>
-            ) : folders.length === 0 ? (
-              <p style={{ fontSize: 12, color: T.text3 }}>Sin fotos aún.</p>
-            ) : folders.map(fd => {
-              const folderPhotos = photos.filter(p => p.folder_date === fd);
-              const isOpen = openFolder === fd;
-              return (
-                <div key={fd} style={{ background: T.surface2, border: `1px solid ${T.border}`, borderRadius: 10, overflow: 'hidden' }}>
-                  <button
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'transparent', border: 'none', cursor: 'pointer', color: T.text2 }}
-                    onMouseEnter={e => (e.currentTarget.style.background = T.surface3)}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                    onClick={() => setOpenFolder(isOpen ? null : fd)}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {isOpen
-                        ? <ChevronDown size={13} style={{ color: T.text3 }} />
-                        : <ChevronRight size={13} style={{ color: T.text3 }} />}
-                      <span style={{ fontSize: 12, color: T.text2 }}>📁 {format(parseISO(fd), 'dd MMM yyyy')}</span>
-                    </div>
-                    <span style={{ fontSize: 10, color: T.text4, fontFamily: "'JetBrains Mono', monospace" }}>
-                      {folderPhotos.length} foto{folderPhotos.length !== 1 ? 's' : ''}
-                    </span>
-                  </button>
-                  {isOpen && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, padding: '0 12px 12px' }}>
-                      {folderPhotos.map(ph => (
-                        <div key={ph.id} style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', aspectRatio: '3/4', background: T.surface3 }}
-                          className="group">
-                          <img src={ph.photo_url} alt={ph.label ?? 'check-in'} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                          <div className="group-hover-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', opacity: 0, transition: 'opacity 0.15s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                            onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
-                            onMouseLeave={e => (e.currentTarget.style.opacity = '0')}>
-                            <button onClick={() => deletePhoto(ph.id, ph.storage_path)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.danger }}>
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                          {ph.label && (
-                            <span style={{ position: 'absolute', bottom: 4, left: 4, fontSize: 9, fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', background: 'rgba(10,11,13,0.75)', color: T.text2, padding: '2px 6px', borderRadius: 4 }}>
-                              {ph.label}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Before/After slider */}
-          {folders.length >= 2 && (
-            <div style={{ marginTop: 16 }}>
-              <p style={{ fontSize: 14, fontWeight: 600, color: T.text, marginBottom: 10 }}>Antes vs Después</p>
-              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                <select value={sliderBefore} onChange={e => setSliderBefore(e.target.value)}
-                  style={{ ...inputStyle, flex: 1 }}>
-                  <option value="">Antes...</option>
-                  {folders.map(f => <option key={f} value={f}>{format(parseISO(f), 'dd MMM yyyy')}</option>)}
-                </select>
-                <select value={sliderAfter} onChange={e => setSliderAfter(e.target.value)}
-                  style={{ ...inputStyle, flex: 1 }}>
-                  <option value="">Después...</option>
-                  {folders.map(f => <option key={f} value={f}>{format(parseISO(f), 'dd MMM yyyy')}</option>)}
-                </select>
-              </div>
-              {beforePhoto && afterPhoto ? (
-                <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', aspectRatio: '3/4', userSelect: 'none' }}>
-                  <img src={afterPhoto.photo_url} alt="después" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', width: `${sliderPct}%` }}>
-                    <img src={beforePhoto.photo_url} alt="antes" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', minWidth: `${10000 / sliderPct}%` }} />
-                  </div>
-                  <div style={{ position: 'absolute', top: 0, bottom: 0, width: 1, background: 'white', left: `${sliderPct}%`, transform: 'translateX(-50%)' }}>
-                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 28, height: 28, borderRadius: '50%', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#333', cursor: 'ew-resize' }}>⟺</div>
-                  </div>
-                  <input type="range" min="0" max="100" value={sliderPct}
-                    onChange={e => setSliderPct(parseInt(e.target.value))}
-                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'ew-resize' }} />
-                </div>
-              ) : (
-                <p style={{ fontSize: 11, color: T.text4, textAlign: 'center', padding: '16px 0' }}>Seleccioná dos fechas para comparar</p>
-              )}
-
-              {/* Separator */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '12px 0' }}>
-                <div style={{ flex: 1, height: 1, background: T.border }} />
-                <span style={{ fontSize: 10, color: T.text4, background: T.surface, padding: '0 4px' }}>o</span>
-                <div style={{ flex: 1, height: 1, background: T.border }} />
-              </div>
-            </div>
-          )}
-
-          {/* Week pills */}
-          {folders.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: folders.length >= 2 ? 0 : 16 }}>
-              {folders.map((fd, i) => {
-                const isLatest = i === 0;
-                return (
-                  <span key={fd} style={{
-                    padding: '3px 8px',
-                    borderRadius: 999,
-                    fontSize: 10,
-                    fontFamily: "'JetBrains Mono', monospace",
-                    background: isLatest ? T.accentDim : T.surface3,
-                    color: isLatest ? T.accent : T.text2,
-                    border: `1px solid ${isLatest ? T.accentLine : T.border}`,
-                  }}>
-                    {format(parseISO(fd), 'dd MMM yyyy')}
-                  </span>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* RIGHT: Trend card */}
-        <div style={card}>
-          {/* Card header */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
-            <div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: T.text, margin: 0 }}>Tendencia subjetiva</p>
-              <p style={{ fontSize: 12, color: T.text3, marginTop: 2 }}>Promedio últimos 4 check-ins</p>
-            </div>
-            <button style={accentBtn} onClick={() => setCheckinDialog(true)}>
-              <Plus size={13} /> Nuevo
+          <DialogFooter>
+            <button onClick={() => setFolderDialog(false)} style={{ background: 'transparent', border: `1px solid ${T.border}`, color: T.text2, borderRadius: 8, padding: '6px 16px', fontSize: 13, cursor: 'pointer' }}>
+              Cancelar
             </button>
-          </div>
+            <button
+              onClick={handleCreateFolder}
+              disabled={!newFolderDate}
+              style={{ background: T.accent, color: T.accentInk, border: 'none', borderRadius: 8, padding: '6px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: !newFolderDate ? 0.5 : 1 }}
+            >
+              Crear
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-          {/* Trend bars */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
-            {trendBars.map(bar => (
-              <div key={bar.label}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: 10, fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', color: T.text3, letterSpacing: '0.05em' }}>{bar.label}</span>
-                  <span style={{ fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: T.text2 }}>{bar.value.toFixed(1)} / 10</span>
-                </div>
-                <div style={{ height: 8, background: T.surface3, borderRadius: 4, overflow: 'hidden', marginTop: 6 }}>
-                  <div style={{ height: '100%', borderRadius: 4, background: bar.color, width: `${(bar.value / 10) * 100}%`, transition: 'width 0.3s ease' }} />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Check-in history */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-            {loading ? (
-              <p style={{ fontSize: 12, color: T.text3 }}>Cargando...</p>
-            ) : checkins.length === 0 ? (
-              <p style={{ fontSize: 12, color: T.text3 }}>Sin check-ins aún.</p>
-            ) : checkins.slice(0, 6).map((c, idx) => (
-              <div key={c.id} style={{ background: T.surface2, border: `1px solid ${T.border}`, borderRadius: 10, padding: 16, marginBottom: 10 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: T.text }}>
-                      Semana {format(parseISO(c.week_date), 'd MMM', { locale: es })}
-                    </span>
-                    {idx === 0 && (
-                      <span style={{ fontSize: 10, fontFamily: "'JetBrains Mono', monospace", background: T.accentDim, color: T.accent, border: `1px solid ${T.accentLine}`, borderRadius: 999, padding: '2px 8px' }}>
-                        Actual
-                      </span>
-                    )}
-                  </div>
-                  <span style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: T.text3 }}>
-                    {format(parseISO(c.week_date), "d MMM yyyy", { locale: es })}
-                  </span>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-                  {[
-                    { label: 'Sueño', value: c.sleep_score },
-                    { label: 'Hambre', value: c.hunger_score },
-                    { label: 'Estrés', value: c.stress_score },
-                    { label: 'Adherencia', value: c.adherence_score },
-                  ].map(s => (
-                    <div key={s.label} style={{ background: T.surface3, borderRadius: 8, padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <span style={{ fontSize: 10, fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', color: T.text3, letterSpacing: '0.04em' }}>{s.label}</span>
-                      <span style={{ fontSize: 13, fontFamily: "'JetBrains Mono', monospace", color: T.text }}>{s.value}</span>
-                    </div>
-                  ))}
-                </div>
-                {c.notes && (
-                  <p style={{ fontSize: 12, color: T.text2, fontStyle: 'italic', lineHeight: 1.55, marginTop: 10 }}>"{c.notes}"</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Photo dialog */}
-      <Dialog open={photoDialog} onOpenChange={setPhotoDialog}>
-        <DialogContent style={{ background: T.surface, border: `1px solid ${T.borderStrong}`, color: T.text, maxWidth: 360 }}>
+      {/* Add photo dialog */}
+      <Dialog open={!!photoDialog} onOpenChange={o => { if (!o) setPhotoDialog(null); }}>
+        <DialogContent style={{ background: T.surface, border: `1px solid ${T.borderStrong}`, color: T.text, maxWidth: 380 }}>
           <DialogHeader>
             <DialogTitle style={{ color: T.text }}>Agregar foto</DialogTitle>
           </DialogHeader>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 8 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '4px 0' }}>
+            {/* Label */}
             <div>
-              <label style={labelStyle}>Fecha del check-in *</label>
-              <input type="date" value={photoDate} onChange={e => setPhotoDate(e.target.value)} style={inputStyle} />
-            </div>
-            <div>
-              <label style={labelStyle}>Etiqueta</label>
-              <select value={photoLabel} onChange={e => setPhotoLabel(e.target.value)} style={inputStyle}>
-                <option value="front">Frontal</option>
-                <option value="back">Trasero</option>
-                <option value="side">Lateral</option>
+              <label style={labelStyle}>Ángulo / etiqueta</label>
+              <select
+                value={photoLabel}
+                onChange={e => setPhotoLabel(e.target.value)}
+                style={{ ...inputStyle, height: 36 }}
+              >
+                <option value="">Sin etiqueta</option>
+                <option value="frontal">Frontal</option>
+                <option value="trasero">Trasero</option>
+                <option value="lateral">Lateral</option>
               </select>
             </div>
+
+            {/* Source tabs */}
+            <div>
+              <div style={{ display: 'inline-flex', background: T.surface2, border: `1px solid ${T.border}`, borderRadius: 9, padding: 3, gap: 2, marginBottom: 12 }}>
+                {(['file', 'drive'] as const).map((tab, i) => (
+                  <button
+                    key={tab}
+                    onClick={() => setPhotoTab(tab)}
+                    style={{
+                      padding: '5px 14px', fontSize: 12, border: 'none', borderRadius: 6, cursor: 'pointer',
+                      background: photoTab === tab ? T.surface3 : 'transparent',
+                      color: photoTab === tab ? T.text : T.text3,
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    {['Subir archivo', 'Link de Drive'][i]}
+                  </button>
+                ))}
+              </div>
+
+              {photoTab === 'file' ? (
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploading}
+                  style={{
+                    width: '100%', padding: '20px', border: `2px dashed ${T.border}`,
+                    borderRadius: 10, background: 'transparent', cursor: 'pointer',
+                    color: T.text3, fontSize: 13, display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', gap: 8, opacity: uploading ? 0.5 : 1, fontFamily: 'inherit',
+                  }}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" />
+                    <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
+                  </svg>
+                  {uploading ? 'Subiendo...' : 'Hacer clic o arrastrar imagen'}
+                  <span style={{ fontSize: 11, color: T.text4 }}>JPG, PNG, WEBP</span>
+                </button>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <input
+                    placeholder="https://drive.google.com/file/d/..."
+                    value={driveUrl}
+                    onChange={e => setDriveUrl(e.target.value)}
+                    style={inputStyle}
+                    autoFocus={photoTab === 'drive'}
+                  />
+                  <p style={{ fontSize: 11, color: T.text4, margin: 0 }}>
+                    El archivo debe ser público o compartido con acceso de visualización.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={e => { if (e.target.files?.[0]) handleUpload(e.target.files[0]); }}
+          />
+
+          <DialogFooter>
             <button
-              onClick={() => fileRef.current?.click()}
-              disabled={!photoDate || uploading}
-              style={{ ...ghostBtn, justifyContent: 'center', opacity: (!photoDate || uploading) ? 0.5 : 1 }}
+              onClick={() => setPhotoDialog(null)}
+              style={{ background: 'transparent', border: `1px solid ${T.border}`, color: T.text2, borderRadius: 8, padding: '6px 16px', fontSize: 13, cursor: 'pointer' }}
             >
-              <Upload size={14} /> Subir archivo
+              Cancelar
             </button>
-            <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }}
-              onChange={e => { if (e.target.files?.[0]) handleUpload(e.target.files[0]); }} />
-
-            {/* Separator */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ flex: 1, height: 1, background: T.border }} />
-              <span style={{ fontSize: 10, color: T.text4, background: T.surface, padding: '0 4px' }}>o URL externa</span>
-              <div style={{ flex: 1, height: 1, background: T.border }} />
-            </div>
-
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input
-                placeholder="https://..."
-                value={photoUrl}
-                onChange={e => setPhotoUrl(e.target.value)}
-                style={{ ...inputStyle, flex: 1 }}
-              />
+            {photoTab === 'drive' && (
               <button
-                onClick={handleAddByUrl}
-                disabled={!photoDate || !photoUrl}
-                style={{ ...accentBtn, opacity: (!photoDate || !photoUrl) ? 0.5 : 1 }}
+                onClick={handleAddDriveUrl}
+                disabled={!driveUrl.trim()}
+                style={{ background: T.accent, color: T.accentInk, border: 'none', borderRadius: 8, padding: '6px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: !driveUrl.trim() ? 0.5 : 1 }}
               >
-                <Link size={13} /> Añadir
+                Agregar
               </button>
-            </div>
-          </div>
-          <DialogFooter style={{ marginTop: 8 }}>
-            <button onClick={() => setPhotoDialog(false)} style={ghostBtn}>Cerrar</button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Checkin dialog */}
-      <Dialog open={checkinDialog} onOpenChange={setCheckinDialog}>
-        <DialogContent style={{ background: T.surface, border: `1px solid ${T.borderStrong}`, color: T.text, maxWidth: 360 }}>
-          <DialogHeader>
-            <DialogTitle style={{ color: T.text }}>Nuevo Check-in Semanal</DialogTitle>
-          </DialogHeader>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
-            <div>
-              <label style={labelStyle}>Semana (lunes)</label>
-              <input type="date" value={checkinForm.week_date}
-                onChange={e => setCheckinForm(p => ({ ...p, week_date: e.target.value }))}
-                style={inputStyle} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <ScoreSlider label="Sueño" value={checkinForm.sleep_score} onChange={v => setCheckinForm(p => ({ ...p, sleep_score: v }))} />
-              <ScoreSlider label="Hambre" value={checkinForm.hunger_score} onChange={v => setCheckinForm(p => ({ ...p, hunger_score: v }))} />
-              <ScoreSlider label="Estrés" value={checkinForm.stress_score} onChange={v => setCheckinForm(p => ({ ...p, stress_score: v }))} />
-              <ScoreSlider label="Cumplimiento del plan" value={checkinForm.adherence_score} onChange={v => setCheckinForm(p => ({ ...p, adherence_score: v }))} />
-            </div>
-            <div>
-              <label style={labelStyle}>Notas</label>
-              <input value={checkinForm.notes} onChange={e => setCheckinForm(p => ({ ...p, notes: e.target.value }))}
-                placeholder="Opcional..." style={inputStyle} />
-            </div>
-          </div>
-          <DialogFooter style={{ marginTop: 8 }}>
-            <button onClick={() => setCheckinDialog(false)} style={ghostBtn}>Cancelar</button>
-            <button onClick={handleSaveCheckin} style={accentBtn}>Guardar</button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Lightbox */}
+      {lightboxPhoto && (
+        <Lightbox
+          photo={lightboxPhoto}
+          onClose={() => setLightboxPhoto(null)}
+          onSaveNotes={notes => handleSavePhotoNotes(lightboxPhoto.id, notes)}
+        />
+      )}
     </div>
   );
 }

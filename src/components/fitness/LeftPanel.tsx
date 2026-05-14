@@ -181,29 +181,25 @@ export function LeftPanel({ client, profile, onSaveProfile }: Props) {
             value={goalCycle}
             onValueChange={v => onSaveProfile({ goal_cycle: v as GoalCycle })}
           >
-            <SelectTrigger asChild>
+            <SelectTrigger style={{
+              display: 'flex', alignItems: 'center', gap: 12,
+              background: T.surface2, border: `1px solid ${T.border}`,
+              borderRadius: 10, padding: '12px', cursor: 'pointer',
+              height: 'auto', width: '100%',
+            }}>
+              {/* Fire icon */}
               <div style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                background: T.surface2, border: `1px solid ${T.border}`,
-                borderRadius: 10, padding: '12px', cursor: 'pointer',
+                width: 36, height: 36, borderRadius: 9, flexShrink: 0,
+                background: T.accentDim, color: T.accent,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                {/* Fire icon */}
-                <div style={{
-                  width: 36, height: 36, borderRadius: 9, flexShrink: 0,
-                  background: T.accentDim, color: T.accent,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12.993 1.036C12.695.338 11.9.014 11.22.372 8.108 2.03 6.05 5.23 6.05 8.942c0 1.082.196 2.12.553 3.078a5.89 5.89 0 0 1-1.013-3.265c0-.595.073-1.174.211-1.727C4.255 8.69 3 11.03 3 13.624 3 18.29 7.03 22 12 22s9-3.71 9-8.376c0-4.14-2.962-7.587-6.935-8.44-.028-.006-.049-.1-.072-.148Z" />
-                  </svg>
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{CYCLE_LABELS[goalCycle]}</div>
-                  <div style={{ fontSize: 11, color: T.text3, marginTop: 2 }}>{CYCLE_DESC[goalCycle]}</div>
-                </div>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={T.text3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="6 9 12 15 18 9" />
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12.993 1.036C12.695.338 11.9.014 11.22.372 8.108 2.03 6.05 5.23 6.05 8.942c0 1.082.196 2.12.553 3.078a5.89 5.89 0 0 1-1.013-3.265c0-.595.073-1.174.211-1.727C4.255 8.69 3 11.03 3 13.624 3 18.29 7.03 22 12 22s9-3.71 9-8.376c0-4.14-2.962-7.587-6.935-8.44-.028-.006-.049-.1-.072-.148Z" />
                 </svg>
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{CYCLE_LABELS[goalCycle]}</div>
+                <div style={{ fontSize: 11, color: T.text3, marginTop: 2 }}>{CYCLE_DESC[goalCycle]}</div>
               </div>
             </SelectTrigger>
             <SelectContent>
