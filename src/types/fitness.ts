@@ -90,10 +90,12 @@ export interface WeeklyCheckin {
   client_id: string;
   user_id: string;
   week_date: string;
-  sleep_score: number;
-  hunger_score: number;
-  stress_score: number;
-  adherence_score: number;
+  week_label: string | null;
+  energy_score: number | null;
+  sleep_score: number | null;
+  hunger_score: number | null;
+  stress_score: number | null;
+  adherence_score: number | null;
   notes: string | null;
   created_at: string;
 }

@@ -91,6 +91,19 @@ export function useCheckIns(clientId: string) {
     fetch();
   };
 
+  const deleteFolder = async (folderDate: string) => {
+    const folderPhotos = (photos as CheckInPhoto[]).filter(p => p.folder_date === folderDate);
+    const storagePaths = folderPhotos.map(p => p.storage_path).filter(Boolean) as string[];
+    if (storagePaths.length > 0) {
+      await supabase.storage.from('checkin-photos').remove(storagePaths);
+    }
+    await supabase.from('check_in_photos').delete().eq('client_id', clientId).eq('folder_date', folderDate);
+    await supabase.from('check_in_folders').delete().eq('client_id', clientId).eq('folder_date', folderDate);
+    await supabase.from('weekly_checkins').delete().eq('client_id', clientId).eq('week_date', folderDate);
+    toast.success('Carpeta eliminada.');
+    fetch();
+  };
+
   const saveCheckin = async (entry: Omit<WeeklyCheckin, 'id' | 'client_id' | 'user_id' | 'created_at'>) => {
     if (!userId) return;
     const { error } = await supabase.from('weekly_checkins').upsert(
@@ -105,7 +118,7 @@ export function useCheckIns(clientId: string) {
   return {
     photos, folderMeta, checkins, folders: allFolderDates, loading,
     refetch: fetch, getFolderMeta,
-    createFolder, updateFolderNotes,
+    createFolder, updateFolderNotes, deleteFolder,
     addPhoto, updatePhotoNotes, updatePhotoLabel, deletePhoto,
     saveCheckin,
   };
