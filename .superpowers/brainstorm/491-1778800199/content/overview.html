@@ -1,0 +1,67 @@
+<h2>Módulo Fitness — Estado Actual</h2>
+<p class="subtitle">Análisis completo de los 5 tabs antes de definir las 30 innovaciones</p>
+
+<div class="section">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
+
+    <div style="background:#1a1a2e;border:1px solid #16213e;border-radius:10px;padding:16px">
+      <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#7c3aed;margin-bottom:8px">💪 Training Tab</div>
+      <p style="font-size:13px;color:#ccc;margin:0 0 8px 0">Google Sheet embebido como plan de entrenamiento</p>
+      <div style="font-size:12px;color:#ef4444">⚠ Sin UI para registrar PRs • Sin ejercicios editables</div>
+    </div>
+
+    <div style="background:#1a1a2e;border:1px solid #16213e;border-radius:10px;padding:16px">
+      <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#0ea5e9;margin-bottom:8px">🫀 Body Mapping Tab</div>
+      <p style="font-size:13px;color:#ccc;margin:0 0 8px 0">SVG corporal con 1100 partículas, 11 zonas de medición</p>
+      <div style="font-size:12px;color:#f59e0b">⚠ Sin exportación • Sin eliminación de mediciones</div>
+    </div>
+
+    <div style="background:#1a1a2e;border:1px solid #16213e;border-radius:10px;padding:16px">
+      <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#10b981;margin-bottom:8px">🥗 Nutrition Tab</div>
+      <p style="font-size:13px;color:#ccc;margin:0 0 8px 0">PDF visor + contador hidratación + alergias + macros</p>
+      <div style="font-size:12px;color:#ef4444">⚠ Sin historial de macros • Hook de comidas sin UI</div>
+    </div>
+
+    <div style="background:#1a1a2e;border:1px solid #16213e;border-radius:10px;padding:16px">
+      <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#f59e0b;margin-bottom:8px">📊 Metrics Tab</div>
+      <p style="font-size:13px;color:#ccc;margin:0 0 8px 0">KPIs, gráfico recharts, comparación, export CSV/XLSX</p>
+      <div style="font-size:12px;color:#ef4444">⚠ Adherencia hardcoded • Sin edición de métricas</div>
+    </div>
+
+    <div style="background:#1a1a2e;border:1px solid #16213e;border-radius:10px;padding:16px;grid-column:1/-1">
+      <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#ec4899;margin-bottom:8px">📸 Check-ins Tab</div>
+      <p style="font-size:13px;color:#ccc;margin:0 0 8px 0">Carpetas semanales, fotos (local + Drive), scores subjetivos (0-10), lightbox</p>
+      <div style="font-size:12px;color:#f59e0b">⚠ Sin evolución de scores en gráfico • Sin validación de rangos • Sin drag-drop</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <h3>Pregunta #1 — Audiencia del módulo</h3>
+  <p class="subtitle">¿Quién usa actualmente estos tabs? Esto define qué tipo de innovaciones tienen más impacto.</p>
+
+  <div class="options">
+    <div class="option" data-choice="coach_only" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>Solo coaches / entrenadores</h3>
+        <p>Los clientes no tienen acceso. El coach carga todo manualmente.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="coach_client" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>Coach y cliente comparten acceso</h3>
+        <p>El cliente puede ver su progreso y/o cargar datos propios desde el mismo sistema.</p>
+      </div>
+    </div>
+    <div class="option" data-choice="planning" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content">
+        <h3>Hoy solo coach, pero se quiere portal de cliente</h3>
+        <p>La visión es que el cliente tenga su propio acceso en el futuro.</p>
+      </div>
+    </div>
+  </div>
+</div>

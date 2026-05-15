@@ -1,0 +1,375 @@
+<style>
+.ideas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }
+.idea-card {
+  background: #0f0f1a;
+  border: 1px solid #1e1e3a;
+  border-radius: 10px;
+  padding: 14px 16px;
+  position: relative;
+  transition: border-color 0.2s;
+}
+.idea-card:hover { border-color: #4a4aaa; }
+.idea-num {
+  font-size: 10px;
+  font-weight: 700;
+  color: #555;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.idea-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin-bottom: 5px;
+}
+.idea-desc {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+.idea-tag {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.tag-complete { background: #1a3a2a; color: #4ade80; }
+.tag-ai { background: #2a1a3a; color: #c084fc; }
+.tag-portal { background: #1a2a3a; color: #60a5fa; }
+.tag-analytics { background: #3a2a1a; color: #fb923c; }
+.cat-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 28px 0 14px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #1e1e3a;
+}
+.cat-header h3 { margin: 0; font-size: 15px; }
+.cat-count {
+  font-size: 11px;
+  color: #555;
+  background: #1a1a2a;
+  border-radius: 20px;
+  padding: 2px 10px;
+}
+.impact-dot {
+  position: absolute;
+  top: 12px; right: 14px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+.impact-high { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+.impact-mid { background: #fb923c; }
+.impact-low { background: #64748b; }
+.legend {
+  display: flex; gap: 16px; align-items: center;
+  font-size: 11px; color: #64748b;
+  margin-bottom: 20px;
+}
+.legend-item { display: flex; align-items: center; gap: 5px; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+</style>
+
+<h2>30 Implementaciones & Ideas para el Módulo Fitness</h2>
+<p class="subtitle">Distribuidas en 4 categorías — análisis quirúrgico del codebase existente</p>
+
+<div class="legend">
+  <span>Impacto:</span>
+  <div class="legend-item"><div class="legend-dot" style="background:#4ade80;box-shadow:0 0 6px #4ade80"></div> Alto</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#fb923c"></div> Medio</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#64748b"></div> Bajo</div>
+</div>
+
+<!-- CATEGORÍA A: Completar gaps -->
+<div class="cat-header">
+  <span style="font-size:18px">🔧</span>
+  <h3 style="color:#4ade80">A — Completar lo que ya existe (el hook existe, falta la UI)</h3>
+  <span class="cat-count">7 ideas</span>
+</div>
+<div class="ideas-grid">
+
+  <div class="idea-card">
+    <div class="impact-dot impact-high"></div>
+    <div class="idea-num">#01</div>
+    <span class="idea-tag tag-complete">COMPLETAR</span>
+    <div class="idea-title">UI de gestión de ejercicios en Training</div>
+    <div class="idea-desc">El hook <code>useTraining</code> tiene saveExercise/updateExercise/deleteExercise pero cero UI. Agregar una tabla editable de ejercicios por día: nombre, series, reps, RPE, descanso.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-high"></div>
+    <div class="idea-num">#02</div>
+    <span class="idea-tag tag-complete">COMPLETAR</span>
+    <div class="idea-title">Registro de PRs (Personal Records)</div>
+    <div class="idea-desc">La tabla <code>strength_records</code> y el hook existen. Agregar un panel de PRs en Training: listado histórico, best lift, 1RM estimado, gráfico de evolución por ejercicio.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-high"></div>
+    <div class="idea-num">#03</div>
+    <span class="idea-tag tag-complete">COMPLETAR</span>
+    <div class="idea-title">UI de comidas e ítems en Nutrition</div>
+    <div class="idea-desc">El hook <code>useNutrition</code> tiene addMeal/addItem/updateItem/deleteItem — sin UI. Mostrar plan dividido en comidas colapsables con macros por ítem y totales por comida.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-mid"></div>
+    <div class="idea-num">#04</div>
+    <span class="idea-tag tag-complete">COMPLETAR</span>
+    <div class="idea-title">Edición inline de métricas existentes</div>
+    <div class="idea-desc">Hoy solo se puede borrar y re-crear. Agregar edición inline en la tabla de Metrics para corregir typos sin perder el ID y la fecha original.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-high"></div>
+    <div class="idea-num">#05</div>
+    <span class="idea-tag tag-complete">COMPLETAR</span>
+    <div class="idea-title">Gráfico de scores semanales en Check-ins</div>
+    <div class="idea-desc">Los <code>weekly_checkins</code> se almacenan pero nunca se visualizan en el tiempo. Agregar un line chart de energía/sueño/estrés/adherencia con rango seleccionable.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-mid"></div>
+    <div class="idea-num">#06</div>
+    <span class="idea-tag tag-complete">COMPLETAR</span>
+    <div class="idea-title">Eliminación y edición de mediciones corporales</div>
+    <div class="idea-desc">Body Mapping no permite borrar ni editar una medición errónea. Agregar menú contextual en cada fila del historial con editar y eliminar con confirmación.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-mid"></div>
+    <div class="idea-num">#07</div>
+    <span class="idea-tag tag-complete">COMPLETAR</span>
+    <div class="idea-title">Métricas de adherencia real calculada</div>
+    <div class="idea-desc">El KPI de adherencia en Metrics está hardcodeado en "—" y 0%. Calcularlo automáticamente como (check-ins realizados / semanas activas) × 100.</div>
+  </div>
+
+</div>
+
+<!-- CATEGORÍA B: IA y automatización -->
+<div class="cat-header">
+  <span style="font-size:18px">🤖</span>
+  <h3 style="color:#c084fc">B — Inteligencia Artificial y automatización</h3>
+  <span class="cat-count">8 ideas</span>
+</div>
+<div class="ideas-grid">
+
+  <div class="idea-card">
+    <div class="impact-dot impact-high"></div>
+    <div class="idea-num">#08</div>
+    <span class="idea-tag tag-ai">IA</span>
+    <div class="idea-title">Detección automática de plateau</div>
+    <div class="idea-desc">Analizar las últimas N métricas y detectar cuándo el progreso se estancó. El coach recibe una alerta: "Lucas lleva 3 semanas sin cambio en grasa corporal — revisar plan."</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-high"></div>
+    <div class="idea-num">#09</div>
+    <span class="idea-tag tag-ai">IA</span>
+    <div class="idea-title">Proyección de fecha objetivo</div>
+    <div class="idea-desc">Con regresión lineal sobre las métricas históricas, calcular y mostrar: "A este ritmo, alcanzás tu objetivo de composición en ~10 semanas." Actualizable en tiempo real.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-high"></div>
+    <div class="idea-num">#10</div>
+    <span class="idea-tag tag-ai">IA</span>
+    <div class="idea-title">Sugerencias de ajuste de macros por IA</div>
+    <div class="idea-desc">Basado en tendencia de peso + composición + scores de hambre, sugerir al coach: "Considerá aumentar 200kcal — el cliente reporta hambre alta y pierde más músculo que grasa."</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-mid"></div>
+    <div class="idea-num">#11</div>
+    <span class="idea-tag tag-ai">IA</span>
+    <div class="idea-title">Generador de plan de entrenamiento con IA</div>
+    <div class="idea-desc">Dado el objetivo (definición/volumen/recomp), lesiones, días disponibles y nivel, generar un plan estructurado con ejercicios, series, reps y progresión. Se carga directo en el módulo.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-high"></div>
+    <div class="idea-num">#12</div>
+    <span class="idea-tag tag-ai">IA</span>
+    <div class="idea-title">Alerta de riesgo de abandono</div>
+    <div class="idea-desc">Modelo que combina: frecuencia de check-ins, scores de adherencia, tiempo sin métricas. Si baja de umbral → notifica al coach: "⚠ Cliente con alto riesgo de baja esta semana."</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-mid"></div>
+    <div class="idea-num">#13</div>
+    <span class="idea-tag tag-ai">IA</span>
+    <div class="idea-title">Análisis de fotos de progreso con IA</div>
+    <div class="idea-desc">Detectar automáticamente cambios corporales entre fotos (frontal/back) usando un modelo de visión. Generar un summary de cambios visibles como apoyo al coach.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-mid"></div>
+    <div class="idea-num">#14</div>
+    <span class="idea-tag tag-ai">IA</span>
+    <div class="idea-title">Resumen semanal auto-generado para el cliente</div>
+    <div class="idea-desc">Cada lunes, generar un PDF/email con IA resumiendo la semana: cambios en métricas, scores de bienestar, logros destacados y próximos objetivos. Firmado por el coach.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-mid"></div>
+    <div class="idea-num">#15</div>
+    <span class="idea-tag tag-ai">IA</span>
+    <div class="idea-title">Coach AI copilot para notas de sesión</div>
+    <div class="idea-desc">Un input donde el coach escribe en lenguaje natural: "Subió 2kg, energía alta, quiere más cardio" y la IA lo estructura en campos del sistema + genera sugerencia de ajuste.</div>
+  </div>
+
+</div>
+
+<!-- CATEGORÍA C: Portal del cliente -->
+<div class="cat-header">
+  <span style="font-size:18px">📱</span>
+  <h3 style="color:#60a5fa">C — Portal y experiencia del cliente</h3>
+  <span class="cat-count">8 ideas</span>
+</div>
+<div class="ideas-grid">
+
+  <div class="idea-card">
+    <div class="impact-dot impact-high"></div>
+    <div class="idea-num">#16</div>
+    <span class="idea-tag tag-portal">PORTAL</span>
+    <div class="idea-title">Vista pública del cliente (read-only)</div>
+    <div class="idea-desc">URL única tipo <code>/client/[token]</code> donde el cliente ve su plan de entrenamiento, nutrición y últimas métricas. Sin login — link compartido por el coach con JWT de solo lectura.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-high"></div>
+    <div class="idea-num">#17</div>
+    <span class="idea-tag tag-portal">PORTAL</span>
+    <div class="idea-title">Auto-registro de métricas por el cliente</div>
+    <div class="idea-desc">El cliente puede cargar su propio peso, % grasa y fotos semanales desde el portal. El coach los ve pendientes de revisión y los confirma antes de que queden registrados.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-high"></div>
+    <div class="idea-num">#18</div>
+    <span class="idea-tag tag-portal">PORTAL</span>
+    <div class="idea-title">Formulario de check-in semanal auto-enviado</div>
+    <div class="idea-desc">Cada domingo a las 20hs, el cliente recibe un link con el formulario de check-in (energía, sueño, adherencia, fotos). Al enviarlo, se carga directo en el módulo.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-high"></div>
+    <div class="idea-num">#19</div>
+    <span class="idea-tag tag-portal">PORTAL</span>
+    <div class="idea-title">Gamificación y streaks de adherencia</div>
+    <div class="idea-desc">Mostrar al cliente su racha de semanas consecutivas con check-in, badges por hitos (primer mes, -5% grasa, PR nuevo) y un nivel de consistencia. Aumenta el engagement.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-mid"></div>
+    <div class="idea-num">#20</div>
+    <span class="idea-tag tag-portal">PORTAL</span>
+    <div class="idea-title">Chat directo coach-cliente en el módulo</div>
+    <div class="idea-desc">Canal de mensajería interno ligado al perfil del cliente. Historial de conversaciones, envío de archivos, mensajes de voz. Sin depender de WhatsApp externo.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-mid"></div>
+    <div class="idea-num">#21</div>
+    <span class="idea-tag tag-portal">PORTAL</span>
+    <div class="idea-title">Feedback del cliente por sesión de entrenamiento</div>
+    <div class="idea-desc">Post-entrenamiento, el cliente registra: RPE percibido, dificultad, ejercicio favorito/más difícil, cómo se sintió. El coach lo ve en la timeline del Training tab.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-mid"></div>
+    <div class="idea-num">#22</div>
+    <span class="idea-tag tag-portal">PORTAL</span>
+    <div class="idea-title">Notificaciones push y email</div>
+    <div class="idea-desc">Sistema de recordatorios configurables: pesaje semanal, check-in de fotos, renovación próxima de suscripción, hidratación diaria. El coach activa/desactiva por cliente.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-mid"></div>
+    <div class="idea-num">#23</div>
+    <span class="idea-tag tag-portal">PORTAL</span>
+    <div class="idea-title">Visor de progreso tipo "before/after" animado</div>
+    <div class="idea-desc">En el portal del cliente, un slider interactivo que compara la foto más antigua con la más reciente. Genera un video automático tipo timelapse con las fotos de check-in ordenadas.</div>
+  </div>
+
+</div>
+
+<!-- CATEGORÍA D: Analytics y visualización -->
+<div class="cat-header">
+  <span style="font-size:18px">📊</span>
+  <h3 style="color:#fb923c">D — Analytics y visualización avanzada</h3>
+  <span class="cat-count">7 ideas</span>
+</div>
+<div class="ideas-grid">
+
+  <div class="idea-card">
+    <div class="impact-dot impact-high"></div>
+    <div class="idea-num">#24</div>
+    <span class="idea-tag tag-analytics">ANALYTICS</span>
+    <div class="idea-title">Heatmap de adherencia (tipo GitHub)</div>
+    <div class="idea-desc">Calendario anual de casilleros coloreados por nivel de adherencia semanal. De un vistazo el coach ve qué semanas fueron consistentes y qué semanas fallaron. Clickeable para ver detalles.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-high"></div>
+    <div class="idea-num">#25</div>
+    <span class="idea-tag tag-analytics">ANALYTICS</span>
+    <div class="idea-title">Dashboard multi-cliente del coach</div>
+    <div class="idea-desc">Vista resumen de todos los clientes activos: último check-in, semanas sin datos, riesgo de abandono, próxima renovación. Ordenable por urgencia. El coach gestiona su cartera de un vistazo.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-high"></div>
+    <div class="idea-num">#26</div>
+    <span class="idea-tag tag-analytics">ANALYTICS</span>
+    <div class="idea-title">Radar chart de bienestar semanal</div>
+    <div class="idea-desc">Visualizar los 5 scores (energía, sueño, hambre, estrés, adherencia) en un radar/spider chart comparando la semana actual vs. promedio histórico del cliente.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-mid"></div>
+    <div class="idea-num">#27</div>
+    <span class="idea-tag tag-analytics">ANALYTICS</span>
+    <div class="idea-title">Correlación sueño / estrés vs. resultados</div>
+    <div class="idea-desc">Scatter plot que cruza scores subjetivos (sueño, estrés) con cambios en métricas corporales. Permite descubrir patrones: "cuando el estrés es >7, el peso aumenta 0.8kg en promedio."</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-mid"></div>
+    <div class="idea-num">#28</div>
+    <span class="idea-tag tag-analytics">ANALYTICS</span>
+    <div class="idea-title">Overlay foto + gráfico sincronizado</div>
+    <div class="idea-desc">Timeline que muestra las fotos de check-in encima del gráfico de métricas. Al hacer scroll en el tiempo, las fotos y los números se sincronizan — narrativa visual del progreso.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-mid"></div>
+    <div class="idea-num">#29</div>
+    <span class="idea-tag tag-analytics">ANALYTICS</span>
+    <div class="idea-title">Cuadrante de composición corporal</div>
+    <div class="idea-desc">Scatter plot fat% vs. muscle_mass con cuadrantes (definición/bulk/recomp/mantener). La posición del cliente se mueve en el tiempo, visualizando hacia dónde se está moviendo su composición.</div>
+  </div>
+
+  <div class="idea-card">
+    <div class="impact-dot impact-mid"></div>
+    <div class="idea-num">#30</div>
+    <span class="idea-tag tag-analytics">ANALYTICS</span>
+    <div class="idea-title">Score de salud compuesto (Health Score)</div>
+    <div class="idea-desc">Un número único (0-100) calculado combinando: tendencia de métricas + adherencia + scores subjetivos + frecuencia de check-ins. Aparece en el LeftPanel y evoluciona semana a semana.</div>
+  </div>
+
+</div>
+
+<div style="background:#0a1628;border:1px solid #1e3a5f;border-radius:10px;padding:18px;margin-top:10px">
+  <div style="font-size:12px;color:#60a5fa;font-weight:700;margin-bottom:8px">RESUMEN</div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;text-align:center">
+    <div><div style="font-size:24px;font-weight:800;color:#4ade80">7</div><div style="font-size:11px;color:#64748b">Completar gaps</div></div>
+    <div><div style="font-size:24px;font-weight:800;color:#c084fc">8</div><div style="font-size:11px;color:#64748b">IA y automatización</div></div>
+    <div><div style="font-size:24px;font-weight:800;color:#60a5fa">8</div><div style="font-size:11px;color:#64748b">Portal cliente</div></div>
+    <div><div style="font-size:24px;font-weight:800;color:#fb923c">7</div><div style="font-size:11px;color:#64748b">Analytics avanzado</div></div>
+  </div>
+</div>
