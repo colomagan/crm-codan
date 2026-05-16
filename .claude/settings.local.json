@@ -6,7 +6,9 @@
       "Bash(npm run *)",
       "Bash(grep -E \"\\\\.\\(sql|ts|json\\)$\")",
       "Bash(xargs wc *)",
-      "Bash(bash *)"
+      "Bash(bash *)",
+      "Bash(npx shadcn@latest add tabs --yes)",
+      "Bash(xargs grep *)"
     ]
   }
 }

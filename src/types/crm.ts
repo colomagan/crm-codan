@@ -12,6 +12,43 @@ export interface Lead {
   email: string | null;
   phone: string | null;
   website: string | null;
+  instagram: string | null;
+  linkedin: string | null;
+  job_title: string | null;
+  industry: string | null;
+  headline: string | null;
+  seniority_level: string | null;
+  company_linkedin: string | null;
+  functional_area: string | null;
+  company_domain: string | null;
+  company_founded_year: string | null;
+  company_city: string | null;
+  company_country: string | null;
+  // body
+  age: number | null;
+  height_cm: number | null;
+  weight_kg: number | null;
+  body_fat_pct: number | null;
+  muscle_mass_kg: number | null;
+  // measurements (cm)
+  neck_cm: number | null;
+  shoulders_cm: number | null;
+  chest_cm: number | null;
+  bicep_l_cm: number | null;
+  bicep_r_cm: number | null;
+  waist_cm: number | null;
+  hips_cm: number | null;
+  thigh_l_cm: number | null;
+  thigh_r_cm: number | null;
+  calf_l_cm: number | null;
+  calf_r_cm: number | null;
+  // nutrition
+  kcal_current: number | null;
+  protein_g: number | null;
+  carbs_g: number | null;
+  fat_g: number | null;
+  water_liters: number | null;
+  supplements: string | null;
   source: string | null;
   city: string | null;
   state: string | null;
@@ -38,6 +75,43 @@ export interface Contact {
   whatsapp: string | null;
   email: string | null;
   website: string | null;
+  instagram: string | null;
+  linkedin: string | null;
+  job_title: string | null;
+  industry: string | null;
+  headline: string | null;
+  seniority_level: string | null;
+  company_linkedin: string | null;
+  functional_area: string | null;
+  company_domain: string | null;
+  company_founded_year: string | null;
+  company_city: string | null;
+  company_country: string | null;
+  // body
+  age: number | null;
+  height_cm: number | null;
+  weight_kg: number | null;
+  body_fat_pct: number | null;
+  muscle_mass_kg: number | null;
+  // measurements (cm)
+  neck_cm: number | null;
+  shoulders_cm: number | null;
+  chest_cm: number | null;
+  bicep_l_cm: number | null;
+  bicep_r_cm: number | null;
+  waist_cm: number | null;
+  hips_cm: number | null;
+  thigh_l_cm: number | null;
+  thigh_r_cm: number | null;
+  calf_l_cm: number | null;
+  calf_r_cm: number | null;
+  // nutrition
+  kcal_current: number | null;
+  protein_g: number | null;
+  carbs_g: number | null;
+  fat_g: number | null;
+  water_liters: number | null;
+  supplements: string | null;
   labels: string[];
   last_contact_date: string | null;
   channel: Channel | null;

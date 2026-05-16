@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import {
   Plus, Search, Pencil, Trash2, Target, ChevronRight,
   Phone, Mail, Globe, MapPin, Star, ArrowRight, ChevronDown,
+  Instagram, Linkedin, Briefcase, Building2,
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -34,17 +35,29 @@ import { format } from 'date-fns';
 const BRAND = 'hsl(38, 60%, 50%)';
 const SOURCES = ['Lead Finder', 'Instagram', 'Web', 'Referral', 'Manual', 'Other'];
 
+const SENIORITY_LEVELS = ['Intern', 'Junior', 'Mid-level', 'Senior', 'Lead', 'Manager', 'Director', 'VP', 'C-Level', 'Founder/Owner'];
+
 const EMPTY_FORM = {
-  business_name: '',
   first_name: '',
   last_name: '',
   email: '',
   phone: '',
+  job_title: '',
+  headline: '',
+  seniority_level: '',
+  industry: '',
+  functional_area: '',
+  linkedin: '',
+  instagram: '',
   website: '',
-  source: '',
+  company_linkedin: '',
+  company_domain: '',
+  company_founded_year: '',
+  company_city: '',
+  company_country: '',
   city: '',
-  state: '',
   country_code: '',
+  source: '',
   category: '',
   notes: '',
 };
@@ -96,7 +109,7 @@ export function LeadsSection() {
     if (statFilter === 'lead-finder' && l.source !== 'Lead Finder') return false;
     if (statFilter === 'manual' && l.source === 'Lead Finder') return false;
     const q = search.toLowerCase();
-    return !q || [l.business_name, l.first_name, l.last_name, l.email, l.phone, l.city, l.category]
+    return !q || [l.first_name, l.last_name, l.email, l.phone, l.city, l.category, l.job_title, l.company_domain, l.industry]
       .some(v => v?.toLowerCase().includes(q));
   });
 
@@ -123,16 +136,26 @@ export function LeadsSection() {
   const openEdit = (l: Lead) => {
     setEditingLead(l);
     setForm({
-      business_name: l.business_name || '',
       first_name: l.first_name || '',
       last_name: l.last_name || '',
       email: l.email || '',
       phone: l.phone || '',
+      job_title: l.job_title || '',
+      headline: l.headline || '',
+      seniority_level: l.seniority_level || '',
+      industry: l.industry || '',
+      functional_area: l.functional_area || '',
+      linkedin: l.linkedin || '',
+      instagram: l.instagram || '',
       website: l.website || '',
-      source: l.source || '',
+      company_linkedin: l.company_linkedin || '',
+      company_domain: l.company_domain || '',
+      company_founded_year: l.company_founded_year || '',
+      company_city: l.company_city || '',
+      company_country: l.company_country || '',
       city: l.city || '',
-      state: l.state || '',
       country_code: l.country_code || '',
+      source: l.source || '',
       category: l.category || '',
       notes: l.notes || '',
     });
@@ -140,23 +163,33 @@ export function LeadsSection() {
   };
 
   const handleSave = async () => {
-    if (!form.business_name.trim() && !form.first_name.trim()) {
-      toast.error('Business name or first name is required.');
+    if (!form.email.trim() && !form.phone.trim()) {
+      toast.error('At least an email or phone (WhatsApp) is required.');
       return;
     }
     if (!userId) return;
 
     const payload = {
-      business_name: form.business_name || null,
       first_name: form.first_name,
       last_name: form.last_name,
       email: form.email || null,
       phone: form.phone || null,
+      job_title: form.job_title || null,
+      headline: form.headline || null,
+      seniority_level: form.seniority_level || null,
+      industry: form.industry || null,
+      functional_area: form.functional_area || null,
+      linkedin: form.linkedin || null,
+      instagram: form.instagram || null,
       website: form.website || null,
-      source: form.source || null,
+      company_linkedin: form.company_linkedin || null,
+      company_domain: form.company_domain || null,
+      company_founded_year: form.company_founded_year || null,
+      company_city: form.company_city || null,
+      company_country: form.company_country || null,
       city: form.city || null,
-      state: form.state || null,
       country_code: form.country_code || null,
+      source: form.source || null,
       category: form.category || null,
       notes: form.notes || null,
     };
@@ -221,26 +254,47 @@ export function LeadsSection() {
     if (!promoteTarget || !userId) return;
     setPromoting(true);
     try {
-      const { error: insertErr } = await supabase.from('contacts').insert({
-        user_id: userId,
-        business_name:   promoteTarget.business_name   || '',
-        first_name:      promoteTarget.first_name      || '',
-        last_name:       promoteTarget.last_name       || '',
-        email:           promoteTarget.email           || null,
-        whatsapp:        promoteTarget.phone           || null,
-        website:         promoteTarget.website         || null,
-        type:            'LEAD_CONTACTED',
-        source:          promoteTarget.source          || null,
-        notes:           promoteTarget.notes           || null,
-        labels:          [],
-        country_code:    promoteTarget.country_code    || null,
-        city:            promoteTarget.city            || null,
-        category:        promoteTarget.category        || null,
-        google_maps_url: promoteTarget.google_maps_url || null,
-        score:           promoteTarget.score           ?? null,
-        reviews_count:   promoteTarget.reviews_count   ?? null,
-      });
+      const { data: insertedContact, error: insertErr } = await supabase.from('contacts').insert({
+        user_id:              userId,
+        business_name:        '',
+        first_name:           promoteTarget.first_name           || '',
+        last_name:            promoteTarget.last_name            || '',
+        email:                promoteTarget.email                || null,
+        whatsapp:             promoteTarget.phone                || null,
+        website:              promoteTarget.website              || null,
+        instagram:            promoteTarget.instagram            || null,
+        linkedin:             promoteTarget.linkedin             || null,
+        job_title:            promoteTarget.job_title            || null,
+        industry:             promoteTarget.industry             || null,
+        headline:             promoteTarget.headline             || null,
+        seniority_level:      promoteTarget.seniority_level      || null,
+        company_linkedin:     promoteTarget.company_linkedin     || null,
+        functional_area:      promoteTarget.functional_area      || null,
+        company_domain:       promoteTarget.company_domain       || null,
+        company_founded_year: promoteTarget.company_founded_year || null,
+        company_city:         promoteTarget.company_city         || null,
+        company_country:      promoteTarget.company_country      || null,
+        type:                 'LEAD_CONTACTED',
+        source:               promoteTarget.source               || null,
+        notes:                promoteTarget.notes                || null,
+        labels:               [],
+        country_code:         promoteTarget.country_code         || null,
+        city:                 promoteTarget.city                 || null,
+        category:             promoteTarget.category             || null,
+        google_maps_url:      promoteTarget.google_maps_url      || null,
+        score:                promoteTarget.score                ?? null,
+        reviews_count:        promoteTarget.reviews_count        ?? null,
+      }).select('id').single();
       if (insertErr) throw insertErr;
+      const newContactId = (insertedContact as any)?.id;
+      if (newContactId) {
+        await supabase.from('crm_attachment_folders')
+          .update({ entity_type: 'contact', entity_id: newContactId })
+          .eq('entity_type', 'lead').eq('entity_id', promoteTarget.id);
+        await supabase.from('crm_attachments')
+          .update({ entity_type: 'contact', entity_id: newContactId })
+          .eq('entity_type', 'lead').eq('entity_id', promoteTarget.id);
+      }
       await supabase.from('leads').delete().eq('id', promoteTarget.id);
       toast.success('Moved to Contacts.');
       fetchLeads();
@@ -365,7 +419,7 @@ export function LeadsSection() {
                 ) : filtered.length === 0 ? (
                   <TableRow><TableCell colSpan={9} className="text-center py-10 text-muted-foreground">No leads found.</TableCell></TableRow>
                 ) : filtered.map(lead => {
-                  const displayName = lead.business_name || `${lead.first_name} ${lead.last_name}`.trim() || '—';
+                  const displayName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || lead.email || '—';
                   const loc = location(lead);
                   return (
                     <TableRow key={lead.id} className="hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate(`/leads/${lead.id}`, { state: { from: 'leads' } })}>
@@ -452,77 +506,168 @@ export function LeadsSection() {
 
       {/* Create / Edit dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>{editingLead ? 'Edit Lead' : 'Add Lead'}</DialogTitle>
+            <p className="text-xs text-muted-foreground">Email or WhatsApp required. All other fields optional.</p>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label>Business / Company Name</Label>
-              <Input placeholder="Acme Corp" value={form.business_name} onChange={e => setForm({ ...form, business_name: e.target.value })} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>First Name</Label>
-                <Input placeholder="John" value={form.first_name} onChange={e => setForm({ ...form, first_name: e.target.value })} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Last Name</Label>
-                <Input placeholder="Doe" value={form.last_name} onChange={e => setForm({ ...form, last_name: e.target.value })} />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Email</Label>
-                <Input type="email" placeholder="email@example.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Phone</Label>
-                <Input placeholder="+1 555-0000" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Website</Label>
-              <Input placeholder="https://example.com" value={form.website} onChange={e => setForm({ ...form, website: e.target.value })} />
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="space-y-1.5">
-                <Label>City</Label>
-                <Input placeholder="Miami" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>State</Label>
-                <Input placeholder="FL" value={form.state} onChange={e => setForm({ ...form, state: e.target.value })} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Country</Label>
-                <Input placeholder="US" value={form.country_code} onChange={e => setForm({ ...form, country_code: e.target.value })} />
+          <div className="overflow-y-auto flex-1 pr-1 space-y-6 py-2">
+
+            {/* 1. Contact — required */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5" /> Contact <span className="text-red-500 font-normal normal-case tracking-normal">* at least one</span>
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>First Name</Label>
+                  <Input placeholder="John" value={form.first_name} onChange={e => setForm({ ...form, first_name: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Last Name</Label>
+                  <Input placeholder="Doe" value={form.last_name} onChange={e => setForm({ ...form, last_name: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Email <span className="text-red-400">*</span></Label>
+                  <Input type="email" placeholder="email@example.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Phone / WhatsApp <span className="text-red-400">*</span></Label>
+                  <Input placeholder="+1 555-0000" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
+                </div>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+
+            {/* 2. Professional */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Briefcase className="w-3.5 h-3.5" /> Professional
+              </p>
               <div className="space-y-1.5">
-                <Label>Category</Label>
-                <Input placeholder="Dental clinic" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} />
+                <Label>Headline</Label>
+                <Input placeholder="e.g. Marketing Manager @ Acme | ex-Google" value={form.headline} onChange={e => setForm({ ...form, headline: e.target.value })} />
               </div>
-              <div className="space-y-1.5">
-                <Label>Source</Label>
-                <Select value={form.source} onValueChange={v => setForm({ ...form, source: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select source" /></SelectTrigger>
-                  <SelectContent>
-                    {SOURCES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Job Title</Label>
+                  <Input placeholder="e.g. Marketing Manager" value={form.job_title} onChange={e => setForm({ ...form, job_title: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Seniority Level</Label>
+                  <Select value={form.seniority_level} onValueChange={v => setForm({ ...form, seniority_level: v })}>
+                    <SelectTrigger><SelectValue placeholder="Select level" /></SelectTrigger>
+                    <SelectContent>
+                      {SENIORITY_LEVELS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Industry</Label>
+                  <Input placeholder="e.g. SaaS, Healthcare" value={form.industry} onChange={e => setForm({ ...form, industry: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Functional Area</Label>
+                  <Input placeholder="e.g. Marketing, Engineering" value={form.functional_area} onChange={e => setForm({ ...form, functional_area: e.target.value })} />
+                </div>
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label>Notes</Label>
-              <Textarea placeholder="Optional notes..." value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={3} />
+
+            {/* 3. Social & Web */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Globe className="w-3.5 h-3.5" /> Social & Web
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1"><Linkedin className="w-3.5 h-3.5" /> LinkedIn</Label>
+                  <Input placeholder="linkedin.com/in/username" value={form.linkedin} onChange={e => setForm({ ...form, linkedin: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1"><Instagram className="w-3.5 h-3.5" /> Instagram</Label>
+                  <Input placeholder="@username" value={form.instagram} onChange={e => setForm({ ...form, instagram: e.target.value })} />
+                </div>
+                <div className="space-y-1.5 col-span-2">
+                  <Label className="flex items-center gap-1"><Globe className="w-3.5 h-3.5" /> Website</Label>
+                  <Input placeholder="https://example.com" value={form.website} onChange={e => setForm({ ...form, website: e.target.value })} />
+                </div>
+              </div>
             </div>
+
+            {/* 4. Company */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5" /> Company
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Company LinkedIn</Label>
+                  <Input placeholder="linkedin.com/company/acme" value={form.company_linkedin} onChange={e => setForm({ ...form, company_linkedin: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Company Domain</Label>
+                  <Input placeholder="acme.com" value={form.company_domain} onChange={e => setForm({ ...form, company_domain: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Founded Year</Label>
+                  <Input placeholder="2010" value={form.company_founded_year} onChange={e => setForm({ ...form, company_founded_year: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Company City</Label>
+                  <Input placeholder="San Francisco" value={form.company_city} onChange={e => setForm({ ...form, company_city: e.target.value })} />
+                </div>
+                <div className="space-y-1.5 col-span-2">
+                  <Label>Company Country</Label>
+                  <Input placeholder="United States" value={form.company_country} onChange={e => setForm({ ...form, company_country: e.target.value })} />
+                </div>
+              </div>
+            </div>
+
+            {/* 5. Personal Location */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5" /> Personal Location
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>City</Label>
+                  <Input placeholder="Miami" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Country</Label>
+                  <Input placeholder="US" value={form.country_code} onChange={e => setForm({ ...form, country_code: e.target.value })} />
+                </div>
+              </div>
+            </div>
+
+            {/* 6. Meta */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Meta</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Source</Label>
+                  <Select value={form.source} onValueChange={v => setForm({ ...form, source: v })}>
+                    <SelectTrigger><SelectValue placeholder="Select source" /></SelectTrigger>
+                    <SelectContent>
+                      {SOURCES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Category</Label>
+                  <Input placeholder="e.g. Dental clinic" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Notes</Label>
+                <Textarea placeholder="Internal notes..." value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={3} />
+              </div>
+            </div>
+
           </div>
-          <DialogFooter>
+          <DialogFooter className="pt-2 border-t">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleSave} style={{ backgroundColor: BRAND }} className="text-white">
-              {editingLead ? 'Update' : 'Add Lead'}
+              {editingLead ? 'Update Lead' : 'Add Lead'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -534,7 +679,7 @@ export function LeadsSection() {
           <AlertDialogHeader>
             <AlertDialogTitle>Move to Contacts?</AlertDialogTitle>
             <AlertDialogDescription>
-              <strong>{promoteTarget?.business_name || `${promoteTarget?.first_name} ${promoteTarget?.last_name}`.trim()}</strong> will be moved to <strong>Contacts</strong> (leads you have contacted). This action removes it from Leads.
+              <strong>{`${promoteTarget?.first_name || ''} ${promoteTarget?.last_name || ''}`.trim() || promoteTarget?.email}</strong> will be moved to <strong>Contacts</strong> (leads you have contacted). This action removes it from Leads.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -557,7 +702,7 @@ export function LeadsSection() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete lead?</AlertDialogTitle>
             <AlertDialogDescription>
-              <strong>{deleteTarget?.business_name || `${deleteTarget?.first_name} ${deleteTarget?.last_name}`.trim()}</strong> will be permanently deleted.
+              <strong>{`${deleteTarget?.first_name || ''} ${deleteTarget?.last_name || ''}`.trim() || deleteTarget?.email}</strong> will be permanently deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

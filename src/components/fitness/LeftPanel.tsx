@@ -123,7 +123,22 @@ export function LeftPanel({ client, profile, onSaveProfile }: Props) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <>
+    <style>{`
+      .left-panel-scroll::-webkit-scrollbar { width: 4px; }
+      .left-panel-scroll::-webkit-scrollbar-track { background: transparent; }
+      .left-panel-scroll::-webkit-scrollbar-thumb {
+        background: ${T.borderStrong};
+        border-radius: 99px;
+      }
+      .left-panel-scroll::-webkit-scrollbar-thumb:hover {
+        background: ${T.text4};
+      }
+    `}</style>
+    <div
+      className="left-panel-scroll"
+      style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', overflowX: 'hidden', scrollbarGutter: 'stable' }}
+    >
 
       {/* ── Identity card ── */}
       <Section>
@@ -296,5 +311,6 @@ export function LeftPanel({ client, profile, onSaveProfile }: Props) {
       </Section>
 
     </div>
+    </>
   );
 }

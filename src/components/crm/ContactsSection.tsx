@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Plus, Search, Pencil, Trash2, Users, ChevronRight, ArrowRight, ChevronDown,
+  Mail, Globe, MapPin, Phone, Briefcase, Building2, Instagram, Linkedin,
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -33,16 +34,31 @@ import { format } from 'date-fns';
 const BRAND = 'hsl(38, 60%, 50%)';
 const SOURCES: Source[] = ['Instagram', 'Web', 'Referral', 'Manual', 'Lead Finder', 'Other'];
 const CHANNELS = ['WhatsApp', 'Email', 'Instagram', 'Phone'];
+const SENIORITY_LEVELS = ['Intern', 'Junior', 'Mid-level', 'Senior', 'Lead', 'Manager', 'Director', 'VP', 'C-Level', 'Founder/Owner'];
 
 const EMPTY_FORM = {
-  business_name: '',
   first_name: '',
   last_name: '',
   email: '',
   whatsapp: '',
+  job_title: '',
+  headline: '',
+  seniority_level: '',
+  industry: '',
+  functional_area: '',
+  linkedin: '',
+  instagram: '',
   website: '',
+  company_linkedin: '',
+  company_domain: '',
+  company_founded_year: '',
+  company_city: '',
+  company_country: '',
+  city: '',
+  country_code: '',
   channel: '',
   source: '' as Source | '',
+  category: '',
   notes: '',
 };
 
@@ -97,7 +113,7 @@ export function ContactsSection() {
       if (d.getMonth() !== now.getMonth() || d.getFullYear() !== now.getFullYear()) return false;
     }
     const q = search.toLowerCase();
-    return !q || [c.business_name, c.first_name, c.last_name, c.email, c.whatsapp]
+    return !q || [c.first_name, c.last_name, c.email, c.whatsapp, c.job_title, c.company_domain, c.industry]
       .some(v => v?.toLowerCase().includes(q));
   });
 
@@ -124,36 +140,64 @@ export function ContactsSection() {
   const openEdit = (c: Contact) => {
     setEditingContact(c);
     setForm({
-      business_name: c.business_name || '',
       first_name: c.first_name || '',
       last_name: c.last_name || '',
       email: c.email || '',
       whatsapp: c.whatsapp || '',
+      job_title: c.job_title || '',
+      headline: c.headline || '',
+      seniority_level: c.seniority_level || '',
+      industry: c.industry || '',
+      functional_area: c.functional_area || '',
+      linkedin: c.linkedin || '',
+      instagram: c.instagram || '',
       website: c.website || '',
+      company_linkedin: c.company_linkedin || '',
+      company_domain: c.company_domain || '',
+      company_founded_year: c.company_founded_year || '',
+      company_city: c.company_city || '',
+      company_country: c.company_country || '',
+      city: c.city || '',
+      country_code: c.country_code || '',
       channel: c.channel || '',
       source: c.source || '',
+      category: c.category || '',
       notes: c.notes || '',
     });
     setDialogOpen(true);
   };
 
   const handleSave = async () => {
-    if (!form.business_name.trim() && !form.first_name.trim()) {
-      toast.error('Business name or first name is required.');
+    if (!form.email.trim() && !form.whatsapp.trim()) {
+      toast.error('At least an email or phone (WhatsApp) is required.');
       return;
     }
     if (!userId) return;
 
     const payload = {
-      business_name: form.business_name,
       first_name: form.first_name,
       last_name: form.last_name,
       email: form.email || null,
       whatsapp: form.whatsapp || null,
+      job_title: form.job_title || null,
+      headline: form.headline || null,
+      seniority_level: form.seniority_level || null,
+      industry: form.industry || null,
+      functional_area: form.functional_area || null,
+      linkedin: form.linkedin || null,
+      instagram: form.instagram || null,
       website: form.website || null,
+      company_linkedin: form.company_linkedin || null,
+      company_domain: form.company_domain || null,
+      company_founded_year: form.company_founded_year || null,
+      company_city: form.company_city || null,
+      company_country: form.company_country || null,
+      city: form.city || null,
+      country_code: form.country_code || null,
       type: 'LEAD_CONTACTED' as const,
       channel: form.channel || null,
       source: form.source || null,
+      category: form.category || null,
       notes: form.notes || null,
     };
 
@@ -212,14 +256,13 @@ export function ContactsSection() {
     }
   };
 
-  // Promote contact → clients table
   const handlePromote = async () => {
     if (!promoteTarget || !userId) return;
     setPromoting(true);
     try {
       const { error: insertErr } = await supabase.from('clients').insert({
         user_id:         userId,
-        business_name:   promoteTarget.business_name   || '',
+        business_name:   '',
         first_name:      promoteTarget.first_name      || '',
         last_name:       promoteTarget.last_name       || '',
         email:           promoteTarget.email           || null,
@@ -349,8 +392,8 @@ export function ContactsSection() {
                     </div>
                   </TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Job</TableHead>
                   <TableHead>Channel</TableHead>
                   <TableHead>Source</TableHead>
                   <TableHead>Added</TableHead>
@@ -363,7 +406,7 @@ export function ContactsSection() {
                 ) : filtered.length === 0 ? (
                   <TableRow><TableCell colSpan={8} className="text-center py-10 text-muted-foreground">No contacts found.</TableCell></TableRow>
                 ) : filtered.map(contact => {
-                  const displayName = contact.business_name || `${contact.first_name} ${contact.last_name}`.trim();
+                  const displayName = `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || contact.email || '—';
                   return (
                     <TableRow key={contact.id} className="cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => navigate(`/clients/${contact.id}`, { state: { from: 'contacts' } })}>
                       <TableCell className="w-10 px-3" onClick={e => e.stopPropagation()}>
@@ -377,17 +420,23 @@ export function ContactsSection() {
                       </TableCell>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ backgroundColor: '#3b82f6' }}>
+                          <div className="w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ backgroundColor: BRAND }}>
                             {getInitials(displayName)}
                           </div>
                           <span>{displayName}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">{contact.email || '—'}</TableCell>
-                      <TableCell className="text-muted-foreground text-sm">{contact.whatsapp || '—'}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-0.5">
+                          {contact.email && <span className="flex items-center gap-1 text-xs text-muted-foreground"><Mail className="w-3 h-3" />{contact.email}</span>}
+                          {contact.whatsapp && <span className="flex items-center gap-1 text-xs text-muted-foreground"><Phone className="w-3 h-3" />{contact.whatsapp}</span>}
+                          {!contact.email && !contact.whatsapp && '—'}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{contact.job_title || '—'}</TableCell>
                       <TableCell>
                         {contact.channel
-                          ? <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-medium">{contact.channel}</span>
+                          ? <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-medium">{contact.channel}</span>
                           : '—'}
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">{contact.source || '—'}</TableCell>
@@ -424,68 +473,177 @@ export function ContactsSection() {
 
       {/* Create / Edit dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>{editingContact ? 'Edit Contact' : 'Add Contact'}</DialogTitle>
+            <p className="text-xs text-muted-foreground">Email or WhatsApp required. All other fields optional.</p>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label>Business / Full Name *</Label>
-              <Input placeholder="Acme Corp" value={form.business_name} onChange={e => setForm({ ...form, business_name: e.target.value })} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>First Name</Label>
-                <Input placeholder="John" value={form.first_name} onChange={e => setForm({ ...form, first_name: e.target.value })} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Last Name</Label>
-                <Input placeholder="Doe" value={form.last_name} onChange={e => setForm({ ...form, last_name: e.target.value })} />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Email</Label>
-                <Input type="email" placeholder="email@example.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Phone / WhatsApp</Label>
-                <Input placeholder="+1 555-0000" value={form.whatsapp} onChange={e => setForm({ ...form, whatsapp: e.target.value })} />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Website</Label>
-              <Input placeholder="https://example.com" value={form.website} onChange={e => setForm({ ...form, website: e.target.value })} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Contact Channel</Label>
-                <Select value={form.channel} onValueChange={v => setForm({ ...form, channel: v })}>
-                  <SelectTrigger><SelectValue placeholder="How contacted?" /></SelectTrigger>
-                  <SelectContent>
-                    {CHANNELS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Source</Label>
-                <Select value={form.source} onValueChange={v => setForm({ ...form, source: v as Source })}>
-                  <SelectTrigger><SelectValue placeholder="Select source" /></SelectTrigger>
-                  <SelectContent>
-                    {SOURCES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+          <div className="overflow-y-auto flex-1 pr-1 space-y-6 py-2">
+
+            {/* 1. Contact — required */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5" /> Contact <span className="text-red-500 font-normal normal-case tracking-normal">* at least one</span>
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>First Name</Label>
+                  <Input placeholder="John" value={form.first_name} onChange={e => setForm({ ...form, first_name: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Last Name</Label>
+                  <Input placeholder="Doe" value={form.last_name} onChange={e => setForm({ ...form, last_name: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Email <span className="text-red-400">*</span></Label>
+                  <Input type="email" placeholder="email@example.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Phone / WhatsApp <span className="text-red-400">*</span></Label>
+                  <Input placeholder="+1 555-0000" value={form.whatsapp} onChange={e => setForm({ ...form, whatsapp: e.target.value })} />
+                </div>
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label>Notes</Label>
-              <Textarea placeholder="Optional notes..." value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={3} />
+
+            {/* 2. Professional */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Briefcase className="w-3.5 h-3.5" /> Professional
+              </p>
+              <div className="space-y-1.5">
+                <Label>Headline</Label>
+                <Input placeholder="e.g. Marketing Manager @ Acme | ex-Google" value={form.headline} onChange={e => setForm({ ...form, headline: e.target.value })} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Job Title</Label>
+                  <Input placeholder="e.g. Marketing Manager" value={form.job_title} onChange={e => setForm({ ...form, job_title: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Seniority Level</Label>
+                  <Select value={form.seniority_level} onValueChange={v => setForm({ ...form, seniority_level: v })}>
+                    <SelectTrigger><SelectValue placeholder="Select level" /></SelectTrigger>
+                    <SelectContent>
+                      {SENIORITY_LEVELS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Industry</Label>
+                  <Input placeholder="e.g. SaaS, Healthcare" value={form.industry} onChange={e => setForm({ ...form, industry: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Functional Area</Label>
+                  <Input placeholder="e.g. Marketing, Engineering" value={form.functional_area} onChange={e => setForm({ ...form, functional_area: e.target.value })} />
+                </div>
+              </div>
             </div>
+
+            {/* 3. Social & Web */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Globe className="w-3.5 h-3.5" /> Social & Web
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1"><Linkedin className="w-3.5 h-3.5" /> LinkedIn</Label>
+                  <Input placeholder="linkedin.com/in/username" value={form.linkedin} onChange={e => setForm({ ...form, linkedin: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="flex items-center gap-1"><Instagram className="w-3.5 h-3.5" /> Instagram</Label>
+                  <Input placeholder="@username" value={form.instagram} onChange={e => setForm({ ...form, instagram: e.target.value })} />
+                </div>
+                <div className="space-y-1.5 col-span-2">
+                  <Label className="flex items-center gap-1"><Globe className="w-3.5 h-3.5" /> Website</Label>
+                  <Input placeholder="https://example.com" value={form.website} onChange={e => setForm({ ...form, website: e.target.value })} />
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Company */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5" /> Company
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Company LinkedIn</Label>
+                  <Input placeholder="linkedin.com/company/acme" value={form.company_linkedin} onChange={e => setForm({ ...form, company_linkedin: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Company Domain</Label>
+                  <Input placeholder="acme.com" value={form.company_domain} onChange={e => setForm({ ...form, company_domain: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Founded Year</Label>
+                  <Input placeholder="2010" value={form.company_founded_year} onChange={e => setForm({ ...form, company_founded_year: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Company City</Label>
+                  <Input placeholder="San Francisco" value={form.company_city} onChange={e => setForm({ ...form, company_city: e.target.value })} />
+                </div>
+                <div className="space-y-1.5 col-span-2">
+                  <Label>Company Country</Label>
+                  <Input placeholder="United States" value={form.company_country} onChange={e => setForm({ ...form, company_country: e.target.value })} />
+                </div>
+              </div>
+            </div>
+
+            {/* 5. Personal Location */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5" /> Personal Location
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>City</Label>
+                  <Input placeholder="Miami" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Country</Label>
+                  <Input placeholder="US" value={form.country_code} onChange={e => setForm({ ...form, country_code: e.target.value })} />
+                </div>
+              </div>
+            </div>
+
+            {/* 6. Meta */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Meta</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Contact Channel</Label>
+                  <Select value={form.channel} onValueChange={v => setForm({ ...form, channel: v })}>
+                    <SelectTrigger><SelectValue placeholder="How contacted?" /></SelectTrigger>
+                    <SelectContent>
+                      {CHANNELS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Source</Label>
+                  <Select value={form.source} onValueChange={v => setForm({ ...form, source: v as Source })}>
+                    <SelectTrigger><SelectValue placeholder="Select source" /></SelectTrigger>
+                    <SelectContent>
+                      {SOURCES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Category</Label>
+                  <Input placeholder="e.g. Dental clinic" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Notes</Label>
+                <Textarea placeholder="Internal notes..." value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={3} />
+              </div>
+            </div>
+
           </div>
-          <DialogFooter>
+          <DialogFooter className="pt-2 border-t">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleSave} style={{ backgroundColor: BRAND }} className="text-white">
-              {editingContact ? 'Update' : 'Add Contact'}
+              {editingContact ? 'Update Contact' : 'Add Contact'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -497,7 +655,7 @@ export function ContactsSection() {
           <AlertDialogHeader>
             <AlertDialogTitle>Move to Clients?</AlertDialogTitle>
             <AlertDialogDescription>
-              <strong>{promoteTarget?.business_name || `${promoteTarget?.first_name} ${promoteTarget?.last_name}`.trim()}</strong> will be moved to <strong>Clients</strong> as a confirmed customer. This removes it from Contacts.
+              <strong>{`${promoteTarget?.first_name || ''} ${promoteTarget?.last_name || ''}`.trim() || promoteTarget?.email}</strong> will be moved to <strong>Clients</strong> as a confirmed customer. This removes it from Contacts.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -519,7 +677,7 @@ export function ContactsSection() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete contact?</AlertDialogTitle>
             <AlertDialogDescription>
-              <strong>{deleteTarget?.business_name || `${deleteTarget?.first_name} ${deleteTarget?.last_name}`.trim()}</strong> will be permanently deleted.
+              <strong>{`${deleteTarget?.first_name || ''} ${deleteTarget?.last_name || ''}`.trim() || deleteTarget?.email}</strong> will be permanently deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
